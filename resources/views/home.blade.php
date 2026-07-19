@@ -57,31 +57,41 @@
 
             <div class="grid grid-cols-4 gap-6">
 
-                @for($i = 1; $i <= 8; $i++)
+    @foreach($videos as $video)
 
-                    <div class="bg-gray-900 rounded-xl overflow-hidden">
+        <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition duration-300">
 
-                        <div class="h-40 bg-gray-800 flex items-center justify-center text-5xl">
-                            ▶
-                        </div>
+            <div class="relative h-40 bg-gray-800 flex items-center justify-center text-5xl">
 
-                        <div class="p-4">
+                ▶
 
-                            <h3 class="font-bold">
-                                Örnek Video {{ $i }}
-                            </h3>
-
-                            <p class="text-gray-400 text-sm">
-                                TurTube Kanalı
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                @endfor
+                <span class="absolute bottom-2 right-2 bg-black/80 text-xs px-2 py-1 rounded">
+                    {{ gmdate('i:s', $video->duration) }}
+                </span>
 
             </div>
+
+            <div class="p-4">
+
+                <h3 class="font-bold text-lg">
+                    {{ $video->title }}
+                </h3>
+
+                <p class="text-gray-400 text-sm mt-1">
+                    {{ $video->channel_name }}
+                </p>
+
+                <p class="text-gray-500 text-xs mt-2">
+                    👁 {{ number_format($video->views) }} görüntülenme
+                </p>
+
+            </div>
+
+        </div>
+
+    @endforeach
+
+</div>
 
         </main>
 

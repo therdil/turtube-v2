@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Video;
 
 Route::get('/', function () {
-    return view('home');
+    $videos = Video::latest()->get();
+
+    return view('home', compact('videos'));
 });
 
 Route::get('/dashboard', function () {

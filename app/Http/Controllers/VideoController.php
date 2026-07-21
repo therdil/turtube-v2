@@ -23,14 +23,15 @@ class VideoController extends Controller
 
     // 2. Veritabanına kaydet
     Video::create([
-        'title' => $request->title,
-        'description' => $request->description,
-        'thumbnail' => $thumbnailPath,
-        'video_path' => $videoPath,
-        'channel_name' => 'Erdil',
-        'views' => 0,
-        'duration' => 0,
-    ]);
+    'title' => $request->title,
+    'description' => $request->description,
+    'thumbnail' => $thumbnailPath,
+    'video_path' => $videoPath,
+    'channel_name' => auth()->user()->name,
+    'user_id' => auth()->id(),
+    'views' => 0,
+    'duration' => 0,
+]);
 
     // 3. Ana sayfaya dön
     return redirect('/')

@@ -14,5 +14,11 @@ class Video extends Model
         'channel_name',
         'views',
         'duration',
+        'user_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -39,13 +39,37 @@
 
             <ul class="space-y-4">
 
-                <li>🏠 Ana Sayfa</li>
-                <li>🔥 Trendler</li>
-                <li>📺 Kanallar</li>
-                <li>❤️ Beğenilenler</li>
-                <li>⬆️ Video Yükle</li>
+    <li>
+        <a href="{{ url('/') }}" class="block hover:text-red-500 transition">
+            🏠 Ana Sayfa
+        </a>
+    </li>
 
-            </ul>
+    <li>
+        <a href="#" class="block hover:text-red-500 transition">
+            🔥 Trendler
+        </a>
+    </li>
+
+    <li>
+        <a href="#" class="block hover:text-red-500 transition">
+            📺 Kanallar
+        </a>
+    </li>
+
+    <li>
+        <a href="#" class="block hover:text-red-500 transition">
+            ❤️ Beğenilenler
+        </a>
+    </li>
+
+    <li>
+        <a href="{{ route('videos.create') }}" class="block hover:text-red-500 transition">
+            ⬆️ Video Yükle
+        </a>
+    </li>
+
+</ul>
 
         </aside>
 

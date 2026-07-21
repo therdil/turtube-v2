@@ -18,6 +18,14 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Bir kullanıcının birden fazla videosu olabilir.
+     */
+    public function videos()
+    {
+        return $this->hasMany(Video::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

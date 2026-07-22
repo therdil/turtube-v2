@@ -1,4 +1,5 @@
 let currentVideo = null;
+let hoverTimer = null;
 
 function updateProgress(card) {
     const preview = card.querySelector(".preview-video");
@@ -36,7 +37,9 @@ function stopPreview(card) {
 
     preview.pause();
     preview.currentTime = 0;
-    preview.classList.add("hidden");
+
+    preview.style.opacity = "0";
+    preview.style.pointerEvents = "none";
 
     if (thumbnail) {
         thumbnail.style.opacity = "1";
@@ -79,12 +82,14 @@ function playPreview(card) {
     currentVideo = preview;
 
     preview.muted = true;
+    preview.currentTime = 0;
 
     if (thumbnail) {
         thumbnail.style.opacity = "0";
     }
 
-    preview.classList.remove("hidden");
+    preview.style.opacity = "1";
+    preview.style.pointerEvents = "auto";
 
     if (button) {
         button.classList.remove("hidden");
@@ -92,7 +97,6 @@ function playPreview(card) {
         button.textContent = "🔇";
     }
 
-    preview.currentTime = 0;
     preview.play().catch(() => {});
 }
 
@@ -106,11 +110,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!preview) return;
 
         card.addEventListener("mouseenter", () => {
-            playPreview(card);
+
+            clearTimeout(hoverTimer);
+
+            hoverTimer = setTimeout(() => {
+                playPreview(card);
+            }, 300);
+
         });
 
         card.addEventListener("mouseleave", () => {
+
+            clearTimeout(hoverTimer);
+
             stopPreview(card);
+
         });
 
         preview.addEventListener("timeupdate", () => {

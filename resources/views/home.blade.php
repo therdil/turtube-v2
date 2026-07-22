@@ -1,97 +1,21 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TurTube</title>
+@extends('layouts.turtube')
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
+@section('title', 'TurTube')
 
-<body class="bg-gray-950 text-white">
+@section('content')
 
-    <header class="h-16 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6">
+    <h2 class="text-3xl font-bold mb-8">
+        Öne Çıkan Videolar
+    </h2>
 
-        <h1 class="text-2xl font-bold text-red-500">
-            🎬 TurTube
-        </h1>
+    <div class="grid grid-cols-4 gap-6">
 
-        <input
-            type="text"
-            placeholder="Video ara..."
-            class="w-96 rounded-lg bg-gray-800 border border-gray-700 px-4 py-2">
+        @foreach($videos as $video)
 
-        <div class="space-x-3">
-            <a href="/login" class="px-4 py-2 bg-gray-700 rounded-lg">
-                Giriş
-            </a>
+            <x-video-card :video="$video" />
 
-            <a href="/register" class="px-4 py-2 bg-red-600 rounded-lg">
-                Kayıt Ol
-            </a>
-        </div>
-
-    </header>
-
-    <div class="flex">
-
-        <aside class="w-64 bg-gray-900 min-h-screen p-6">
-
-            <ul class="space-y-4">
-
-    <li>
-        <a href="{{ url('/') }}" class="block hover:text-red-500 transition">
-            🏠 Ana Sayfa
-        </a>
-    </li>
-
-    <li>
-        <a href="#" class="block hover:text-red-500 transition">
-            🔥 Trendler
-        </a>
-    </li>
-
-    <li>
-        <a href="#" class="block hover:text-red-500 transition">
-            📺 Kanallar
-        </a>
-    </li>
-
-    <li>
-        <a href="#" class="block hover:text-red-500 transition">
-            ❤️ Beğenilenler
-        </a>
-    </li>
-
-    <li>
-        <a href="{{ route('videos.create') }}" class="block hover:text-red-500 transition">
-            ⬆️ Video Yükle
-        </a>
-    </li>
-
-</ul>
-
-        </aside>
-
-        <main class="flex-1 p-8">
-
-            <h2 class="text-3xl font-bold mb-8">
-                Öne Çıkan Videolar
-            </h2>
-
-            <div class="grid grid-cols-4 gap-6">
-
-    @foreach($videos as $video)
-
-        <x-video-card :video="$video" />
-
-    @endforeach
-
-</div>
-
-        </main>
+        @endforeach
 
     </div>
 
-</body>
-</html>
+@endsection

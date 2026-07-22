@@ -39,7 +39,14 @@ class VideoController extends Controller
 }
 
     public function show(Video $video)
-    {
-        return view('videos.show', compact('video'));
-    }
+{
+    return view('videos.show', compact('video'));
+}
+
+public function myVideos()
+{
+    $videos = auth()->user()->videos()->latest()->get();
+
+    return view('videos.my-videos', compact('videos'));
+}
 }

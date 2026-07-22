@@ -26,6 +26,9 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    Route::get('/my-videos', [VideoController::class, 'myVideos'])
+    ->name('videos.mine');    
 });
 
 Route::get('/dashboard', function () {

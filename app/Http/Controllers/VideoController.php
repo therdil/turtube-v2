@@ -35,7 +35,8 @@ class VideoController extends Controller
             'duration' => 0,
         ]);
 
-        return redirect('/')
+        return redirect()
+            ->route('videos.mine')
             ->with('success', 'Video başarıyla yüklendi!');
     }
 

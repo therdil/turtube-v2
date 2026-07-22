@@ -28,7 +28,16 @@ Route::middleware('auth')->group(function () {
         ->name('profile.destroy');
 
     Route::get('/my-videos', [VideoController::class, 'myVideos'])
-    ->name('videos.mine');    
+        ->name('videos.mine');
+    
+    Route::get('/videos/{video}/edit', [VideoController::class, 'edit'])
+        ->name('videos.edit');
+
+    Route::put('/videos/{video}', [VideoController::class, 'update'])
+        ->name('videos.update');
+    
+    Route::delete('/videos/{video}', [VideoController::class, 'destroy'])
+        ->name('videos.destroy');
 });
 
 Route::get('/dashboard', function () {

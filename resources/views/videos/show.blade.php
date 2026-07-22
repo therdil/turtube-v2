@@ -14,6 +14,7 @@
 
             <video
                 controls
+                autoplay
                 class="w-full max-h-[650px] bg-black">
 
                 <source

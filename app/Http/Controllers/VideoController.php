@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreVideoRequest;
 use App\Models\Video;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class VideoController extends Controller
 {
@@ -51,6 +53,16 @@ class VideoController extends Controller
         return view('videos.show', compact('video', 'recommendedVideos'));
     }
 
+    public function edit(Video $video)
+    {
+    // Kullanıcı sadece kendi videosunu düzenleyebilir.
+    if ($video->user_id !== auth()->id()) {
+        abort(403);
+    }
+
+    return view('videos.edit', compact('video'));
+    }
+
     public function myVideos()
     {
         $videos = auth()->user()
@@ -59,5 +71,48 @@ class VideoController extends Controller
             ->get();
 
         return view('videos.my-videos', compact('videos'));
+    }
+    public function update(Request $request, Video $video)
+    {
+        // Kullanıcı sadece kendi videosunu güncelleyebilir.
+        if ($video->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        ]);
+
+        $video->update($validated);
+
+        return redirect()
+        ->route('videos.mine')
+        ->with('success', 'Video başarıyla güncellendi.');
+    }
+    
+    public function destroy(Video $video)
+    {
+    // Güvenlik kontrolü
+    if ($video->user_id !== auth()->id()) {
+        abort(403);
+    }
+
+    // Thumbnail dosyasını sil
+    if ($video->thumbnail && Storage::disk('public')->exists($video->thumbnail)) {
+        Storage::disk('public')->delete($video->thumbnail);
+    }
+
+    // Video dosyasını sil
+    if ($video->video_path && Storage::disk('public')->exists($video->video_path)) {
+        Storage::disk('public')->delete($video->video_path);
+    }
+
+    // Veritabanındaki kaydı sil
+    $video->delete();
+
+    return redirect()
+        ->route('videos.mine')
+        ->with('success', 'Video başarıyla silindi.');
     }
 }

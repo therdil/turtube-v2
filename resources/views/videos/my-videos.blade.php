@@ -4,6 +4,14 @@
 
 @section('content')
 
+@if(session('success'))
+
+    <div class="mb-6 bg-green-600 text-white px-4 py-3 rounded-lg">
+        {{ session('success') }}
+    </div>
+
+@endif
+
 <div class="flex items-center justify-between mb-8">
 
     <h1 class="text-3xl font-bold">
@@ -72,19 +80,31 @@
         <!-- İşlemler -->
         <div class="flex flex-col gap-3">
 
-            <button
-                class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition">
+            <a
+                href="{{ route('videos.edit', $video) }}"
+        class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition text-center">
 
                 ✏️ Düzenle
 
-            </button>
+            </a>
 
-            <button
-                class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition">
+            <form
+    action="{{ route('videos.destroy', $video) }}"
+    method="POST"
+    onsubmit="return confirm('Bu videoyu silmek istediğinize emin misiniz?');">
 
-                🗑️ Sil
+    @csrf
+    @method('DELETE')
 
-            </button>
+    <button
+        type="submit"
+        class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition">
+
+        🗑️ Sil
+
+    </button>
+
+</form>
 
         </div>
 

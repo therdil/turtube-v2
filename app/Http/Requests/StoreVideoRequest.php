@@ -8,7 +8,7 @@ class StoreVideoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return auth()->check();
     }
 
     public function rules(): array
@@ -16,8 +16,22 @@ class StoreVideoRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'thumbnail' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'video' => 'required|mimetypes:video/mp4|max:51200',
+
+            'video' => [
+                'required',
+                'file',
+                'mimetypes:video/mp4',
+                'max:51200', // 50 MB
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'video.required' => 'Lütfen bir video seçin.',
+            'video.mimetypes' => 'Sadece MP4 formatındaki videolar yüklenebilir.',
+            'video.max' => 'Video boyutu en fazla 50 MB olabilir.',
         ];
     }
 }

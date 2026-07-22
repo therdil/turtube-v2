@@ -22,6 +22,14 @@
             >
                 <source src="{{ $video->preview_url }}" type="video/mp4">
             </video>
+
+            {{-- Ses Butonu --}}
+            <button
+                type="button"
+                class="mute-button absolute bottom-3 right-3 z-20 hidden h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur transition hover:bg-black/90"
+            >
+                🔇
+            </button>
         @endif
 
         {{-- Üst Gradient --}}
@@ -30,17 +38,17 @@
         {{-- Süre --}}
         @if($video->duration)
             <div
-                class="absolute bottom-2 right-2 rounded bg-black/80 px-2 py-1 text-xs font-semibold text-white"
+                class="absolute bottom-3 left-3 rounded bg-black/80 px-2 py-1 text-xs font-semibold text-white"
             >
                 {{ $video->duration }}
             </div>
         @endif
 
-        {{-- Progress Bar (Şimdilik gizli, sonraki adımda aktif olacak) --}}
-        <div class="absolute bottom-0 left-0 h-1 w-full bg-black/40">
+        {{-- Progress Bar --}}
+        <div class="absolute bottom-0 left-0 h-1 w-full">
 
             <div
-                class="preview-progress h-full w-0 bg-red-600 transition-all duration-75">
+                class="preview-progress h-full w-0 bg-red-600">
             </div>
 
         </div>
@@ -50,7 +58,7 @@
     <div class="space-y-2 p-4">
 
         <h3
-            class="line-clamp-2 min-h-[56px] text-lg font-bold text-white group-hover:text-red-400 transition-colors duration-300"
+            class="line-clamp-2 min-h-[56px] text-lg font-bold text-white transition-colors duration-300 group-hover:text-red-400"
         >
             {{ $video->title }}
         </h3>

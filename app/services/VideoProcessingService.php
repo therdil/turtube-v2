@@ -66,16 +66,13 @@ class VideoProcessingService
 
         $duration = max(1, $this->getDuration($videoPath));
 
-        // İlk saniyeden başlasın
         $start = 1;
-
-        // Maksimum 6 saniye
         $length = min(6, max(1, $duration - $start));
 
         $ffmpeg = 'D:\\Tools\\FFmpeg\\bin\\ffmpeg.exe';
 
         $command = sprintf(
-            '"%s" -y -ss %d -i "%s" -t %d -an -vf "scale=854:-2" -c:v libx264 -preset veryfast -crf 30 "%s"',
+            '"%s" -y -ss %d -i "%s" -t %d -vf "scale=854:-2" -c:v libx264 -preset veryfast -crf 30 -c:a aac -b:a 128k "%s"',
             $ffmpeg,
             $start,
             $absoluteVideo,

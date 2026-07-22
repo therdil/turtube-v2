@@ -29,15 +29,25 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/my-videos', [VideoController::class, 'myVideos'])
         ->name('videos.mine');
-    
+
     Route::get('/videos/{video}/edit', [VideoController::class, 'edit'])
         ->name('videos.edit');
 
     Route::put('/videos/{video}', [VideoController::class, 'update'])
         ->name('videos.update');
-    
+
     Route::delete('/videos/{video}', [VideoController::class, 'destroy'])
         ->name('videos.destroy');
+
+    // Geçici FFmpeg testi
+    Route::get('/ffmpeg-test', function () {
+
+        $output = shell_exec('ffmpeg -version');
+
+        return "<pre>{$output}</pre>";
+
+    });
+
 });
 
 Route::get('/dashboard', function () {

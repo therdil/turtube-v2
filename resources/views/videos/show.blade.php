@@ -1,59 +1,117 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $video->title }} - TurTube</title>
+@extends('layouts.turtube')
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
+@section('title', $video->title)
 
-<body class="bg-gray-950 text-white">
+@section('content')
 
-    <div class="max-w-7xl mx-auto p-8">
+<div class="grid grid-cols-12 gap-8">
 
-        <a href="/" class="text-red-500 hover:underline">
-            ← Ana Sayfaya Dön
-        </a>
+    <!-- Sol Taraf -->
+    <div class="col-span-9">
 
-        <div class="mt-6 bg-black rounded-xl overflow-hidden">
+        <!-- Video -->
+        <div class="bg-black rounded-xl overflow-hidden">
 
             <video
-    controls
-    class="w-full h-[600px] bg-black rounded-lg">
+                controls
+                class="w-full max-h-[650px] bg-black">
 
-    <source
-        src="{{ asset('storage/' . $video->video_path) }}"
-        type="video/mp4">
+                <source
+                    src="{{ asset('storage/' . $video->video_path) }}"
+                    type="video/mp4">
 
-    Tarayıcınız video oynatmayı desteklemiyor.
-</video>
+                Tarayıcınız video oynatmayı desteklemiyor.
+
+            </video>
 
         </div>
 
+        <!-- Bilgiler -->
         <div class="mt-6">
 
             <h1 class="text-3xl font-bold">
                 {{ $video->title }}
             </h1>
 
-            <p class="text-gray-400 mt-2">
-                {{ $video->channel_name }}
-            </p>
+            <div class="flex justify-between items-center mt-4">
 
-            <p class="text-gray-500 mt-2">
-                👁 {{ number_format($video->views) }} görüntülenme
-            </p>
+                <div>
 
-            <hr class="my-6 border-gray-800">
+                    <p class="text-lg font-semibold">
+                        👤 {{ $video->channel_name }}
+                    </p>
 
-            <p class="text-gray-300 leading-7">
-                {{ $video->description }}
-            </p>
+                    <p class="text-gray-400 text-sm mt-1">
+                        👁 {{ number_format($video->views) }} görüntülenme
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="mt-6 bg-gray-900 rounded-lg p-6">
+
+                <h2 class="font-semibold mb-3">
+                    Açıklama
+                </h2>
+
+                <p class="text-gray-300 leading-7 whitespace-pre-line">
+                    {{ $video->description }}
+                </p>
+
+            </div>
 
         </div>
 
     </div>
 
-</body>
-</html>
+    <!-- Sağ Taraf -->
+    <div class="col-span-3">
+
+        <h2 class="text-xl font-bold mb-5">
+            Önerilen Videolar
+        </h2>
+
+        <div class="space-y-5">
+
+            @forelse($recommendedVideos as $recommended)
+
+                <a
+                    href="{{ route('videos.show', $recommended) }}"
+                    class="block hover:bg-gray-900 rounded-lg p-2 transition">
+
+                    <img
+                        src="{{ asset('storage/' . $recommended->thumbnail) }}"
+                        class="rounded-lg w-full aspect-video object-cover">
+
+                    <h3 class="mt-2 font-semibold line-clamp-2">
+                        {{ $recommended->title }}
+                    </h3>
+
+                    <p class="text-sm text-gray-400 mt-1">
+                        {{ $recommended->channel_name }}
+                    </p>
+
+                    <p class="text-xs text-gray-500">
+                        👁 {{ number_format($recommended->views) }}
+                    </p>
+
+                </a>
+
+            @empty
+
+                <div class="text-gray-500">
+
+                    Henüz önerilecek başka video yok.
+
+                </div>
+
+            @endforelse
+
+        </div>
+
+    </div>
+
+</div>
+
+@endsection

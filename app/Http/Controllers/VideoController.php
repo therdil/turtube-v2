@@ -13,40 +13,51 @@ class VideoController extends Controller
     }
 
     public function store(StoreVideoRequest $request)
-{
-    // 1. Dosyaları kaydet
-    $videoPath = $request->file('video')
-        ->store('videos', 'public');
+    {
+        // Dosyaları kaydet
+        $videoPath = $request->file('video')
+            ->store('videos', 'public');
 
-    $thumbnailPath = $request->file('thumbnail')
-        ->store('thumbnails', 'public');
+        $thumbnailPath = $request->file('thumbnail')
+            ->store('thumbnails', 'public');
 
-    // 2. Veritabanına kaydet
-    Video::create([
-    'title' => $request->title,
-    'description' => $request->description,
-    'thumbnail' => $thumbnailPath,
-    'video_path' => $videoPath,
-    'channel_name' => auth()->user()->name,
-    'user_id' => auth()->id(),
-    'views' => 0,
-    'duration' => 0,
-]);
+        // Veritabanına kaydet
+        Video::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'thumbnail' => $thumbnailPath,
+            'video_path' => $videoPath,
+            'channel_name' => auth()->user()->name,
+            'user_id' => auth()->id(),
+            'views' => 0,
+            'duration' => 0,
+        ]);
 
-    // 3. Ana sayfaya dön
-    return redirect('/')
-        ->with('success', 'Video başarıyla yüklendi!');
-}
+        return redirect('/')
+            ->with('success', 'Video başarıyla yüklendi!');
+    }
 
     public function show(Video $video)
-{
-    return view('videos.show', compact('video'));
-}
+    {
+        // Görüntülenme sayısını artır
+        $video->increment('views');
 
-public function myVideos()
-{
-    $videos = auth()->user()->videos()->latest()->get();
+        // İzlenen video hariç son eklenen videolar
+        $recommendedVideos = Video::where('id', '!=', $video->id)
+            ->latest()
+            ->take(8)
+            ->get();
 
-    return view('videos.my-videos', compact('videos'));
-}
+        return view('videos.show', compact('video', 'recommendedVideos'));
+    }
+
+    public function myVideos()
+    {
+        $videos = auth()->user()
+            ->videos()
+            ->latest()
+            ->get();
+
+        return view('videos.my-videos', compact('videos'));
+    }
 }

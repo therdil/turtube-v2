@@ -14,7 +14,7 @@
             </button>
 
             <a
-                href="{{ url('/') }}"
+                href="{{ route('home') }}"
                 class="flex items-center gap-2">
 
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600">
@@ -39,24 +39,36 @@
 
         </div>
 
-
         {{-- Arama --}}
         <div class="mx-8 hidden max-w-2xl flex-1 md:block">
 
-            <div class="relative">
+            <form
+                action="{{ route('search') }}"
+                method="GET"
+                class="relative">
 
                 <input
                     type="text"
+                    name="q"
+                    value="{{ request('q') }}"
                     placeholder="Video ara..."
-                    class="w-full rounded-xl border border-gray-800 bg-gray-900 py-3 pl-12 pr-4 text-sm text-white placeholder:text-gray-500 focus:border-red-500 focus:outline-none">
+                    autocomplete="off"
+                    class="w-full rounded-xl border border-gray-800 bg-gray-900 py-3 pl-12 pr-14 text-sm text-white placeholder:text-gray-500 focus:border-red-500 focus:outline-none">
 
                 <x-heroicon-o-magnifying-glass
                     class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500"/>
 
-            </div>
+                <button
+                    type="submit"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium transition hover:bg-red-700">
+
+                    Ara
+
+                </button>
+
+            </form>
 
         </div>
-
 
         {{-- Sağ --}}
         <div class="flex items-center gap-3">
@@ -81,7 +93,6 @@
 
             @endguest
 
-
             @auth
 
                 <a
@@ -94,14 +105,12 @@
 
                 </a>
 
-
                 <button
                     class="rounded-xl p-2 transition hover:bg-gray-800">
 
                     <x-heroicon-o-bell class="h-6 w-6"/>
 
                 </button>
-
 
                 <div
                     x-data="{ open:false }"
@@ -126,7 +135,6 @@
                         <x-heroicon-o-chevron-down class="h-4 w-4"/>
 
                     </button>
-
 
                     <div
                         x-show="open"

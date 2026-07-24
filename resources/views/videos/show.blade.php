@@ -24,27 +24,34 @@
 
                     <div class="flex items-center gap-4">
 
-                        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-xl font-bold text-white">
-                            {{ strtoupper(substr($video->channel_name, 0, 1)) }}
-                        </div>
+                        <a
+                            href="{{ route('channels.show', $video->user) }}"
+                            class="flex items-center gap-4">
 
-                        <div>
+                            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-xl font-bold text-white">
+                                {{ strtoupper(substr($video->channel_name, 0, 1)) }}
+                            </div>
 
-                            <h2 class="text-lg font-bold text-white">
-                                {{ $video->channel_name }}
-                            </h2>
+                            <div>
 
-                            <p class="text-sm text-gray-400">
-                                TurTube Resmî Kanal
-                            </p>
+                                <h2 class="text-lg font-bold text-white hover:text-red-500 transition">
+                                    {{ $video->channel_name }}
+                                </h2>
 
-                        </div>
+                                <p class="text-sm text-gray-400">
+                                    TurTube Resmî Kanal
+                                </p>
+
+                            </div>
+
+                        </a>
 
                     </div>
 
-                    <x-ui.button class="rounded-full px-6 py-3">
-                        Abone Ol
-                    </x-ui.button>
+                    <x-watch.subscribe-button
+                        :video="$video"
+                        :isSubscribed="$isSubscribed"
+                        :subscribersCount="$subscribersCount" />
 
                 </div>
 

@@ -19,6 +19,14 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Route Model Binding için kullanıcı adı kullan.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'name';
+    }
+
+    /**
      * Kullanıcının yüklediği videolar
      */
     public function videos(): HasMany
@@ -32,6 +40,22 @@ class User extends Authenticatable
     public function videoLikes(): HasMany
     {
         return $this->hasMany(VideoLike::class);
+    }
+
+    /**
+     * Kullanıcının abone olduğu kanallar
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class, 'subscriber_id');
+    }
+
+    /**
+     * Kullanıcının aboneleri
+     */
+    public function subscribers(): HasMany
+    {
+        return $this->hasMany(Subscription::class, 'channel_id');
     }
 
     /**

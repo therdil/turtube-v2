@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +13,15 @@ Route::get('/', [HomeController::class, 'index']);
 
 Route::get('/videos/{video}', [VideoController::class, 'show'])
     ->name('videos.show');
+
+/*
+|--------------------------------------------------------------------------
+| Kanal Sayfası
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/@{user:name}', [ChannelController::class, 'show'])
+    ->name('channels.show');
 
 Route::middleware('auth')->group(function () {
 
@@ -28,6 +39,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/videos/{video}/like', [LikeController::class, 'toggle'])
         ->name('videos.like');
+
+    Route::post('/channels/{channel}/subscribe', [SubscriptionController::class, 'toggle'])
+        ->name('channels.subscribe');
 
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
@@ -50,7 +64,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/videos/{video}', [VideoController::class, 'destroy'])
         ->name('videos.destroy');
 
-    // Geçici FFmpeg testi
     Route::get('/ffmpeg-test', function () {
 
         $output = shell_exec('ffmpeg -version');

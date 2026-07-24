@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreVideoRequest;
+use App\Models\Subscription;
 use App\Models\Video;
 use App\Services\VideoProcessingService;
 use Illuminate\Http\Request;
@@ -54,30 +55,42 @@ class VideoController extends Controller
         $video->increment('views');
 
         $video->load([
+            'user',
             'comments.user',
         ]);
 
-        // Toplam beğeni sayısını yükle
         $video->loadCount('likes');
 
-        // Giriş yapan kullanıcı bu videoyu beğenmiş mi?
         $isLiked = false;
+        $isSubscribed = false;
 
         if (auth()->check()) {
+
             $isLiked = $video->likes()
                 ->where('user_id', auth()->id())
                 ->exists();
+
+            $isSubscribed = Subscription::where('subscriber_id', auth()->id())
+                ->where('channel_id', $video->user_id)
+                ->exists();
         }
+
+        $subscribersCount = Subscription::where(
+            'channel_id',
+            $video->user_id
+        )->count();
 
         $recommendedVideos = Video::where('id', '!=', $video->id)
             ->latest()
             ->take(8)
             ->get();
 
-        return view('videos.show', [
+            return view('videos.show', [
             'video' => $video,
             'recommendedVideos' => $recommendedVideos,
             'isLiked' => $isLiked,
+            'isSubscribed' => $isSubscribed,
+            'subscribersCount' => $subscribersCount,
         ]);
     }
 

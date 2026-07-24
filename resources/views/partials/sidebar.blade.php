@@ -6,9 +6,9 @@
         <nav class="space-y-2">
 
             <a
-                href="{{ url('/') }}"
+                href="{{ route('home') }}"
                 class="flex items-center gap-3 rounded-xl px-4 py-3 transition
-                {{ request()->is('/') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+                {{ request()->routeIs('home') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
 
                 <x-heroicon-o-home class="h-5 w-5"/>
 
@@ -85,6 +85,23 @@
 
         {{-- Kişisel --}}
         <nav class="space-y-2">
+
+            @auth
+
+                <a
+                    href="{{ route('watch-later.index') }}"
+                    class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                    {{ request()->routeIs('watch-later.*') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+
+                    <x-heroicon-o-clock class="h-5 w-5"/>
+
+                    <span class="font-medium">
+                        Daha Sonra İzle
+                    </span>
+
+                </a>
+
+            @endauth
 
             <a
                 href="#"

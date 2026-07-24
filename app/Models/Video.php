@@ -18,6 +18,7 @@ class Video extends Model
         'views',
         'duration',
         'user_id',
+        'category_id',
     ];
 
     protected $attributes = [
@@ -30,6 +31,14 @@ class Video extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Videonun kategorisi
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     /**

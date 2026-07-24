@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreVideoRequest;
+use App\Models\Category;
 use App\Models\Subscription;
 use App\Models\Video;
 use App\Services\VideoProcessingService;
@@ -20,7 +21,9 @@ class VideoController extends Controller
 
     public function create()
     {
-        return view('videos.create');
+        $categories = Category::orderBy('name')->get();
+
+        return view('videos.create', compact('categories'));
     }
 
     public function store(StoreVideoRequest $request)
@@ -41,6 +44,7 @@ class VideoController extends Controller
             'video_path'   => $videoPath,
             'channel_name' => auth()->user()->name,
             'user_id'      => auth()->id(),
+            'category_id'  => $request->category_id,
             'views'        => 0,
             'duration'     => gmdate('i:s', $duration),
         ]);
@@ -56,40 +60,68 @@ class VideoController extends Controller
 
         $video->load([
             'user',
+            'category',
             'comments.user',
         ]);
 
         $video->loadCount('likes');
 
-        $isLiked = false;
-        $isSubscribed = false;
+$isLiked = false;
+$isSubscribed = false;
+$isWatchLater = false;
 
-        if (auth()->check()) {
+if (auth()->check()) {
 
-            $isLiked = $video->likes()
-                ->where('user_id', auth()->id())
-                ->exists();
+    $isLiked = $video->likes()
+        ->where('user_id', auth()->id())
+        ->exists();
 
-            $isSubscribed = Subscription::where('subscriber_id', auth()->id())
-                ->where('channel_id', $video->user_id)
-                ->exists();
-        }
+    $isSubscribed = Subscription::where('subscriber_id', auth()->id())
+        ->where('channel_id', $video->user_id)
+        ->exists();
 
-        $subscribersCount = Subscription::where(
-            'channel_id',
-            $video->user_id
-        )->count();
+    $isWatchLater = auth()->user()
+        ->watchLaterVideos()
+        ->where('video_id', $video->id)
+        ->exists();
+}
 
-        $recommendedVideos = Video::where('id', '!=', $video->id)
-            ->latest()
-            ->take(8)
-            ->get();
+$subscribersCount = Subscription::where(
+    'channel_id',
+    $video->user_id
+)->count();
 
-            return view('videos.show', [
+        $recommendedVideos = Video::query()
+    ->where('id', '!=', $video->id)
+    ->when($video->category_id, function ($query) use ($video) {
+        $query->where('category_id', $video->category_id);
+    })
+    ->orderByDesc('views')
+    ->latest()
+    ->take(8)
+    ->get();
+
+if ($recommendedVideos->count() < 8) {
+
+    $missing = 8 - $recommendedVideos->count();
+
+    $additionalVideos = Video::query()
+        ->where('id', '!=', $video->id)
+        ->whereNotIn('id', $recommendedVideos->pluck('id'))
+        ->latest()
+        ->take($missing)
+        ->get();
+
+    $recommendedVideos = $recommendedVideos->concat($additionalVideos);
+
+}
+
+        return view('videos.show', [
             'video' => $video,
             'recommendedVideos' => $recommendedVideos,
             'isLiked' => $isLiked,
             'isSubscribed' => $isSubscribed,
+            'isWatchLater' => $isWatchLater,
             'subscribersCount' => $subscribersCount,
         ]);
     }

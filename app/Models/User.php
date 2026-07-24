@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -48,6 +49,17 @@ class User extends Authenticatable
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class, 'subscriber_id');
+    }
+    
+    /**
+     * Kullanıcının Daha Sonra İzle listesi
+     */
+    public function watchLaterVideos(): BelongsToMany
+    {
+        return $this->belongsToMany(
+        Video::class,
+        'watch_laters'
+        )->withTimestamps();
     }
 
     /**

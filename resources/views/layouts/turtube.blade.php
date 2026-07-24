@@ -17,15 +17,19 @@
         {{-- Header --}}
         @include('partials.header')
 
-        {{-- Main Area --}}
         <div class="flex flex-1">
 
             {{-- Sidebar --}}
             @include('partials.sidebar')
 
-            {{-- Content --}}
-            <main class="flex-1 overflow-y-auto p-6 lg:p-8">                
-                    @yield('content')                
+            <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+
+                {{-- Kategori Menüsü --}}
+                @include('partials.categories')
+
+                {{-- Sayfa İçeriği --}}
+                @yield('content')
+
             </main>
 
         </div>

@@ -15,7 +15,13 @@ class StoreVideoRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
+
             'description' => 'nullable|string',
+
+            'category_id' => [
+                'nullable',
+                'exists:categories,id',
+            ],
 
             'video' => [
                 'required',
@@ -32,6 +38,8 @@ class StoreVideoRequest extends FormRequest
             'video.required' => 'Lütfen bir video seçin.',
             'video.mimetypes' => 'Sadece MP4 formatındaki videolar yüklenebilir.',
             'video.max' => 'Video boyutu en fazla 50 MB olabilir.',
+
+            'category_id.exists' => 'Geçersiz kategori seçildi.',
         ];
     }
 }

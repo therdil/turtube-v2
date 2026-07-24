@@ -49,6 +49,7 @@
 
                 <div class="space-y-7">
 
+                    {{-- Başlık --}}
                     <div>
 
                         <label class="block mb-2 font-semibold">
@@ -66,6 +67,7 @@
 
                     </div>
 
+                    {{-- Açıklama --}}
                     <div>
 
                         <label class="block mb-2 font-semibold">
@@ -81,6 +83,40 @@
 
                     </div>
 
+                    {{-- Kategori --}}
+                    <div>
+
+                        <label class="block mb-2 font-semibold">
+
+                            Kategori
+
+                        </label>
+
+                        <select
+                            name="category_id"
+                            class="w-full rounded-xl bg-gray-800 border border-gray-700 focus:border-red-500 focus:ring-red-500 text-white">
+
+                            <option value="">
+                                Kategori Seçin
+                            </option>
+
+                            @foreach($categories as $category)
+
+                                <option
+                                    value="{{ $category->id }}"
+                                    @selected(old('category_id') == $category->id)>
+
+                                    {{ $category->name }}
+
+                                </option>
+
+                            @endforeach
+
+                        </select>
+
+                    </div>
+
+                    {{-- Video --}}
                     <div>
 
                         <label class="block mb-3 font-semibold">

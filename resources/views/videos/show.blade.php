@@ -72,9 +72,9 @@
                     🔗 Paylaş
                 </x-ui.button>
 
-                <x-ui.button variant="secondary" class="rounded-full px-5 py-3">
-                    💾 Kaydet
-                </x-ui.button>
+                <x-watch.watch-later-button
+                    :video="$video"
+                    :isWatchLater="$isWatchLater" />
 
             </div>
 

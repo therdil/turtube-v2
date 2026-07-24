@@ -41,6 +41,14 @@
             </div>
         @endif
 
+        {{-- Kategori --}}
+        @if($video->category)
+            <div
+                class="absolute top-3 left-3 z-30 rounded-full bg-red-600/90 px-3 py-1 text-xs font-semibold text-white shadow-lg backdrop-blur">
+                {{ $video->category->name }}                
+            </div>
+        @endif
+
         {{-- Progress --}}
         <div class="absolute bottom-0 left-0 z-30 h-1 w-full bg-black/20">
             <div class="preview-progress h-full w-0 bg-red-600"></div>
@@ -59,6 +67,12 @@
             <p class="text-sm font-medium text-gray-300">
                 {{ $video->channel_name }}
             </p>
+
+            @if($video->category)
+                <p class="text-xs font-medium text-red-400">
+                    {{ $video->category->name }}
+                </p>
+            @endif
 
             <p class="text-xs text-gray-500">
                 {{ number_format($video->views) }} görüntülenme

@@ -24,19 +24,14 @@ class VideoController extends Controller
 
     public function store(StoreVideoRequest $request)
     {
-        // Videoyu kaydet
         $videoPath = $request->file('video')->store('videos', 'public');
 
-        // Thumbnail oluştur
         $thumbnailPath = $this->videoService->generateThumbnail($videoPath);
 
-        // Preview oluştur
         $previewPath = $this->videoService->generatePreview($videoPath);
 
-        // Süreyi al
         $duration = $this->videoService->getDuration($videoPath);
 
-        // Veritabanına kaydet
         Video::create([
             'title'        => $request->title,
             'description'  => $request->description,
@@ -58,12 +53,32 @@ class VideoController extends Controller
     {
         $video->increment('views');
 
+        $video->load([
+            'comments.user',
+        ]);
+
+        // Toplam beğeni sayısını yükle
+        $video->loadCount('likes');
+
+        // Giriş yapan kullanıcı bu videoyu beğenmiş mi?
+        $isLiked = false;
+
+        if (auth()->check()) {
+            $isLiked = $video->likes()
+                ->where('user_id', auth()->id())
+                ->exists();
+        }
+
         $recommendedVideos = Video::where('id', '!=', $video->id)
             ->latest()
             ->take(8)
             ->get();
 
-        return view('videos.show', compact('video', 'recommendedVideos'));
+        return view('videos.show', [
+            'video' => $video,
+            'recommendedVideos' => $recommendedVideos,
+            'isLiked' => $isLiked,
+        ]);
     }
 
     public function edit(Video $video)

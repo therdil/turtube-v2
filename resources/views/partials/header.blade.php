@@ -1,111 +1,186 @@
-<header class="h-16 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6">
+<header class="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/95 backdrop-blur">
 
-    <!-- Logo -->
-    <a href="{{ url('/') }}"
-       class="text-2xl font-bold text-red-500 hover:text-red-400 transition">
-        🎬 TurTube
-    </a>
+    <div class="flex h-16 items-center justify-between px-6">
 
-    <!-- Arama -->
-    <input
-        type="text"
-        placeholder="Video ara..."
-        class="w-96 rounded-lg bg-gray-800 border border-gray-700 px-4 py-2 focus:outline-none focus:border-red-500">
-
-    <!-- Sağ Menü -->
-    <div class="flex items-center space-x-3">
-
-        @guest
-
-            <a href="{{ route('login') }}"
-               class="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
-                Giriş
-            </a>
-
-            <a href="{{ route('register') }}"
-               class="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition">
-                Kayıt Ol
-            </a>
-
-        @endguest
-
-
-        @auth
-
-        <div
-            x-data="{ open: false }"
-            class="relative">
+        {{-- Sol --}}
+        <div class="flex items-center gap-4">
 
             <button
-                @click="open = !open"
-                class="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition">
+                type="button"
+                class="rounded-xl p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white">
 
-                👤 {{ auth()->user()->name }}
-
-                <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    viewBox="0 0 24 24">
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M19 9l-7 7-7-7"/>
-
-                </svg>
+                <x-heroicon-o-bars-3 class="h-6 w-6"/>
 
             </button>
 
+            <a
+                href="{{ url('/') }}"
+                class="flex items-center gap-2">
 
-            <!-- Dropdown -->
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600">
 
-            <div
-                x-show="open"
-                @click.outside="open = false"
-                x-transition
-                class="absolute right-0 mt-3 w-64 bg-gray-800 rounded-xl shadow-xl border border-gray-700 overflow-hidden z-50">
+                    <x-heroicon-o-play class="h-6 w-6 text-white"/>
 
-                <a
-                    href="{{ route('videos.mine') }}"
-                    class="block px-5 py-3 hover:bg-gray-700 transition">
+                </div>
 
-                    🎥 Videolarım
+                <div>
 
-                </a>
+                    <div class="text-xl font-bold tracking-tight">
+                        TurTube
+                    </div>
 
-                <a
-                    href="{{ route('videos.create') }}"
-                    class="block px-5 py-3 hover:bg-gray-700 transition">
+                    <div class="-mt-1 text-xs text-gray-500">
+                        Video Platformu
+                    </div>
 
-                    ⬆️ Video Yükle
+                </div>
 
-                </a>
+            </a>
 
-                <hr class="border-gray-700">
+        </div>
 
-                <form
-                    method="POST"
-                    action="{{ route('logout') }}">
 
-                    @csrf
+        {{-- Arama --}}
+        <div class="mx-8 hidden max-w-2xl flex-1 md:block">
 
-                    <button
-                        type="submit"
-                        class="w-full text-left px-5 py-3 hover:bg-red-600 transition">
+            <div class="relative">
 
-                        🚪 Çıkış Yap
+                <input
+                    type="text"
+                    placeholder="Video ara..."
+                    class="w-full rounded-xl border border-gray-800 bg-gray-900 py-3 pl-12 pr-4 text-sm text-white placeholder:text-gray-500 focus:border-red-500 focus:outline-none">
 
-                    </button>
-
-                </form>
+                <x-heroicon-o-magnifying-glass
+                    class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500"/>
 
             </div>
 
         </div>
 
-        @endauth
+
+        {{-- Sağ --}}
+        <div class="flex items-center gap-3">
+
+            @guest
+
+                <a
+                    href="{{ route('login') }}"
+                    class="rounded-xl border border-gray-700 px-4 py-2 text-sm transition hover:bg-gray-800">
+
+                    Giriş
+
+                </a>
+
+                <a
+                    href="{{ route('register') }}"
+                    class="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium transition hover:bg-red-700">
+
+                    Kayıt Ol
+
+                </a>
+
+            @endguest
+
+
+            @auth
+
+                <a
+                    href="{{ route('videos.create') }}"
+                    class="flex items-center gap-2 rounded-xl border border-gray-700 px-4 py-2 text-sm transition hover:bg-gray-800">
+
+                    <x-heroicon-o-plus class="h-5 w-5"/>
+
+                    <span>Yükle</span>
+
+                </a>
+
+
+                <button
+                    class="rounded-xl p-2 transition hover:bg-gray-800">
+
+                    <x-heroicon-o-bell class="h-6 w-6"/>
+
+                </button>
+
+
+                <div
+                    x-data="{ open:false }"
+                    class="relative">
+
+                    <button
+                        @click="open=!open"
+                        class="flex items-center gap-3 rounded-xl border border-gray-700 bg-gray-900 px-3 py-2 transition hover:border-gray-600">
+
+                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-red-600 font-semibold">
+
+                            {{ strtoupper(substr(auth()->user()->name,0,1)) }}
+
+                        </div>
+
+                        <span class="hidden md:block">
+
+                            {{ auth()->user()->name }}
+
+                        </span>
+
+                        <x-heroicon-o-chevron-down class="h-4 w-4"/>
+
+                    </button>
+
+
+                    <div
+                        x-show="open"
+                        @click.outside="open=false"
+                        x-transition
+                        class="absolute right-0 mt-3 w-64 overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 shadow-2xl">
+
+                        <a
+                            href="{{ route('videos.mine') }}"
+                            class="flex items-center gap-3 px-5 py-3 transition hover:bg-gray-800">
+
+                            <x-heroicon-o-film class="h-5 w-5"/>
+
+                            Videolarım
+
+                        </a>
+
+                        <a
+                            href="{{ route('videos.create') }}"
+                            class="flex items-center gap-3 px-5 py-3 transition hover:bg-gray-800">
+
+                            <x-heroicon-o-arrow-up-tray class="h-5 w-5"/>
+
+                            Video Yükle
+
+                        </a>
+
+                        <div class="border-t border-gray-800"></div>
+
+                        <form
+                            method="POST"
+                            action="{{ route('logout') }}">
+
+                            @csrf
+
+                            <button
+                                type="submit"
+                                class="flex w-full items-center gap-3 px-5 py-3 text-left transition hover:bg-red-600">
+
+                                <x-heroicon-o-arrow-left-on-rectangle class="h-5 w-5"/>
+
+                                Çıkış Yap
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            @endauth
+
+        </div>
 
     </div>
 

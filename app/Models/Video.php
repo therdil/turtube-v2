@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\WatchHistory;
 
 class Video extends Model
 {
@@ -34,6 +36,15 @@ class Video extends Model
     }
 
     /**
+     * Videonun bulunduğu oynatma listeleri
+     */
+    public function playlists(): BelongsToMany
+    {
+        return $this->belongsToMany(Playlist::class)
+            ->withTimestamps();
+    }
+
+    /**
      * Videonun kategorisi
      */
     public function category(): BelongsTo
@@ -55,6 +66,14 @@ class Video extends Model
     public function likes(): HasMany
     {
         return $this->hasMany(VideoLike::class);
+    }
+
+    /**
+     * Videoyu izleyen kullanıcıların geçmiş kayıtları
+     */
+    public function watchHistories(): HasMany
+    {
+        return $this->hasMany(WatchHistory::class);
     }
 
     /**

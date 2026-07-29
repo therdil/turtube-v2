@@ -6,6 +6,7 @@ use App\Http\Requests\StoreVideoRequest;
 use App\Models\Category;
 use App\Models\Subscription;
 use App\Models\Video;
+use App\Models\WatchHistory;
 use App\Services\VideoProcessingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -58,6 +59,23 @@ class VideoController extends Controller
     {
         $video->increment('views');
 
+        if (auth()->check()) {
+
+            WatchHistory::updateOrCreate(
+
+                [
+                    'user_id'  => auth()->id(),
+                    'video_id' => $video->id,
+                ],
+
+                [
+                    'watched_at' => now(),
+                ]
+
+            );
+
+        }
+
         $video->load([
             'user',
             'category',
@@ -69,6 +87,8 @@ class VideoController extends Controller
 $isLiked = false;
 $isSubscribed = false;
 $isWatchLater = false;
+$playlists = collect();
+$playlistVideoIds = collect();
 
 if (auth()->check()) {
 
@@ -84,6 +104,15 @@ if (auth()->check()) {
         ->watchLaterVideos()
         ->where('video_id', $video->id)
         ->exists();
+
+    $playlists = auth()->user()
+        ->playlists()
+        ->orderBy('name')
+        ->get();
+
+    $playlistVideoIds = $video->playlists()
+        ->where('user_id', auth()->id())
+        ->pluck('playlists.id');
 }
 
 $subscribersCount = Subscription::where(
@@ -122,6 +151,8 @@ if ($recommendedVideos->count() < 8) {
             'isLiked' => $isLiked,
             'isSubscribed' => $isSubscribed,
             'isWatchLater' => $isWatchLater,
+            'playlists' => $playlists,
+            'playlistVideoIds' => $playlistVideoIds,
             'subscribersCount' => $subscribersCount,
         ]);
     }

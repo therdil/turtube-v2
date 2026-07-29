@@ -24,6 +24,8 @@
 
             <main class="flex-1 overflow-y-auto p-6 lg:p-8">
 
+                @include('partials.flash')
+
                 {{-- Kategori Menüsü --}}
                 @include('partials.categories')
 

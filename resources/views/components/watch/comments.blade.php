@@ -1,19 +1,3 @@
-@if (session('success'))
-    <div class="mb-6 rounded-xl border border-green-700 bg-green-900/30 p-4 text-green-300">
-        {{ session('success') }}
-    </div>
-@endif
-
-@if ($errors->any())
-    <div class="mb-6 rounded-xl border border-red-700 bg-red-900/30 p-4 text-red-300">
-        <ul class="list-disc space-y-1 pl-5">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
 <div class="mt-8">
 
     <h2 class="mb-6 text-2xl font-bold text-white">

@@ -8,7 +8,10 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $videos = Video::latest()->get();
+        $videos = Video::query()
+            ->with(['user', 'category'])
+            ->latest()
+            ->paginate(16);
 
         return view('home', compact('videos'));
     }

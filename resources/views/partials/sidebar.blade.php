@@ -19,8 +19,9 @@
             </a>
 
             <a
-                href="#"
-                class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-300 transition hover:bg-gray-900 hover:text-white">
+                href="{{ route('trending') }}"
+                class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                {{ request()->routeIs('trending') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
 
                 <x-heroicon-o-fire class="h-5 w-5"/>
 
@@ -31,8 +32,9 @@
             </a>
 
             <a
-                href="#"
-                class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-300 transition hover:bg-gray-900 hover:text-white">
+                href="{{ route('channels.index') }}"
+                class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                {{ request()->routeIs('channels.index') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
 
                 <x-heroicon-o-tv class="h-5 w-5"/>
 
@@ -101,19 +103,58 @@
 
                 </a>
 
+                <a
+                    href="{{ route('history.index') }}"
+                    class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                    {{ request()->routeIs('history.*') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+
+                    <x-heroicon-o-clock class="h-5 w-5"/>
+
+                    <span class="font-medium">
+                        İzleme Geçmişi
+                    </span>
+
+                </a>
+
+                <a
+                    href="{{ route('playlists.index') }}"
+                    class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                    {{ request()->routeIs('playlists.*') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+
+                    <x-heroicon-o-queue-list class="h-5 w-5"/>
+
+                    <span class="font-medium">
+                        Oynatma Listeleri
+                    </span>
+
+                </a>
+
+                <a
+                    href="{{ route('subscriptions.index') }}"
+                    class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                    {{ request()->routeIs('subscriptions.*') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+
+                    <x-heroicon-o-users class="h-5 w-5"/>
+
+                    <span class="font-medium">
+                        Abonelikler
+                    </span>
+
+                </a>
+
+                <a
+                    href="{{ route('liked-videos.index') }}"
+                    class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                    {{ request()->routeIs('liked-videos.*') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+
+                    <x-heroicon-o-heart class="h-5 w-5"/>
+
+                    <span class="font-medium">
+                        Beğenilenler
+                    </span>
+
+                </a>
             @endauth
-
-            <a
-                href="#"
-                class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-300 transition hover:bg-gray-900 hover:text-white">
-
-                <x-heroicon-o-heart class="h-5 w-5"/>
-
-                <span class="font-medium">
-                    Beğenilenler
-                </span>
-
-            </a>
 
         </nav>
 

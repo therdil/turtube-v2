@@ -6,11 +6,17 @@
     <div class="relative aspect-video overflow-hidden bg-black">
 
         {{-- Thumbnail --}}
-        <img
-            src="{{ $video->thumbnail_url }}"
-            alt="{{ $video->title }}"
-            class="thumbnail absolute inset-0 z-10 h-full w-full object-cover opacity-100 transition-all duration-300 group-hover:scale-[1.03]"
-        >
+        @if ($video->thumbnail)
+            <img
+                src="{{ $video->thumbnail_url }}"
+                alt="{{ $video->title }}"
+                class="thumbnail absolute inset-0 z-10 h-full w-full object-cover opacity-100 transition-all duration-300 group-hover:scale-[1.03]"
+            >
+        @else
+            <div class="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-red-700 via-red-900 to-gray-950 text-4xl text-white/80">
+                <x-heroicon-o-play class="h-12 w-12" />
+            </div>
+        @endif
 
         {{-- Preview --}}
         @if($video->preview)

@@ -1,11 +1,11 @@
 @auth
 
-@if(auth()->id() !== $video->user_id)
+@if(auth()->id() !== $channel->id)
 
 <button
     id="subscribeButton"
     type="button"
-    data-url="{{ route('channels.subscribe', $video->user) }}"
+    data-url="{{ route('channels.subscribe', $channel) }}"
     class="rounded-full px-6 py-3 font-semibold transition {{ $isSubscribed
         ? 'bg-gray-200 text-black hover:bg-gray-300'
         : 'bg-red-600 text-white hover:bg-red-700' }}">

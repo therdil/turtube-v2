@@ -4,14 +4,6 @@
 
 @section('content')
 
-@if(session('success'))
-
-    <div class="mb-6 bg-green-600 text-white px-4 py-3 rounded-lg">
-        {{ session('success') }}
-    </div>
-
-@endif
-
 <div class="flex items-center justify-between mb-8">
 
     <h1 class="text-3xl font-bold">

@@ -30,43 +30,7 @@
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
             @foreach($videos as $video)
-
-                <a
-                    href="{{ route('videos.show', $video) }}"
-                    class="group">
-
-                    <img
-                        src="{{ asset('storage/' . $video->thumbnail) }}"
-                        alt="{{ $video->title }}"
-                        class="aspect-video w-full rounded-xl object-cover transition duration-300 group-hover:scale-[1.02]">
-
-                    <div class="mt-3">
-
-                        <h2 class="line-clamp-2 font-semibold text-white group-hover:text-red-500">
-
-                            {{ $video->title }}
-
-                        </h2>
-
-                        <p class="mt-2 text-sm text-gray-400">
-
-                            {{ $video->channel_name }}
-
-                        </p>
-
-                        <p class="mt-1 text-xs text-gray-500">
-
-                            👁 {{ number_format($video->views) }}
-                            •
-
-                            {{ $video->created_at->diffForHumans() }}
-
-                        </p>
-
-                    </div>
-
-                </a>
-
+                <x-video-card :video="$video" />
             @endforeach
 
         </div>

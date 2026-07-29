@@ -4,9 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Video;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class LikeController extends Controller
 {
+    /**
+     * Kullanıcının beğendiği videolar
+     */
+    public function index(): View
+    {
+        $videos = auth()->user()
+            ->likedVideos()
+            ->with(['user', 'category'])
+            ->latest('video_likes.created_at')
+            ->get();
+
+        return view('liked-videos.index', compact('videos'));
+    }
+
     /**
      * Video beğenisini aç / kapat (toggle)
      */

@@ -15,6 +15,7 @@ class SearchController extends Controller
         $query = trim($request->input('q', ''));
 
         $videos = Video::query()
+            ->with(['user', 'category'])
             ->when($query !== '', function ($builder) use ($query) {
                 $builder->where('title', 'like', "%{$query}%")
                         ->orWhere('description', 'like', "%{$query}%")

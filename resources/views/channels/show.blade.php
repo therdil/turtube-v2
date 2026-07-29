@@ -41,7 +41,7 @@
                 @if(auth()->id() !== $channel->id)
 
                     <x-watch.subscribe-button
-                        :video="$videos->first()"
+                        :channel="$channel"
                         :isSubscribed="$isSubscribed"
                         :subscribersCount="$subscribersCount" />
 
@@ -73,37 +73,35 @@
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
                 @foreach($videos as $video)
-
-                    <a
-                        href="{{ route('videos.show', $video) }}"
-                        class="group">
-
-                        <img
-                            src="{{ asset('storage/' . $video->thumbnail) }}"
-                            class="aspect-video w-full rounded-xl object-cover transition group-hover:scale-[1.02]"
-                            alt="{{ $video->title }}">
-
-                        <h3 class="mt-3 line-clamp-2 font-semibold text-white">
-
-                            {{ $video->title }}
-
-                        </h3>
-
-                        <p class="mt-1 text-sm text-gray-400">
-
-                            👁 {{ number_format($video->views) }}
-
-                        </p>
-
-                    </a>
-
+                    <x-video-card :video="$video" />
                 @endforeach
 
             </div>
 
         @endif
 
+        @if ($videos->hasPages())
+            <div class="mt-8">{{ $videos->links() }}</div>
+        @endif
+
     </div>
+
+    @if ($playlists->isNotEmpty())
+        <div class="mt-12">
+            <h2 class="mb-6 text-2xl font-bold text-white">Herkese açık listeler</h2>
+
+            <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                @foreach ($playlists as $playlist)
+                    <a href="{{ route('playlists.show', $playlist) }}" class="rounded-2xl border border-gray-800 bg-gray-900 p-6 transition hover:border-red-500">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-red-400">Oynatma listesi</p>
+                        <h3 class="mt-2 text-xl font-bold text-white">{{ $playlist->name }}</h3>
+                        <p class="mt-3 line-clamp-2 text-sm text-gray-400">{{ $playlist->description ?: 'Açıklama yok.' }}</p>
+                        <p class="mt-5 text-sm text-gray-500">{{ $playlist->videos_count }} video</p>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
 
 </div>
 

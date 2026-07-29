@@ -13,6 +13,13 @@ class ChannelController extends Controller
     public function show(User $user)
     {
         $videos = $user->videos()
+            ->with(['user', 'category'])
+            ->latest()
+            ->paginate(16);
+
+        $playlists = $user->playlists()
+            ->where('is_public', true)
+            ->withCount('videos')
             ->latest()
             ->get();
 
@@ -35,6 +42,7 @@ class ChannelController extends Controller
         return view('channels.show', [
             'channel' => $user,
             'videos' => $videos,
+            'playlists' => $playlists,
             'subscribersCount' => $subscribersCount,
             'totalViews' => $totalViews,
             'isSubscribed' => $isSubscribed,

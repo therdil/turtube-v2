@@ -49,7 +49,7 @@
                     </div>
 
                     <x-watch.subscribe-button
-                        :video="$video"
+                        :channel="$video->user"
                         :isSubscribed="$isSubscribed"
                         :subscribersCount="$subscribersCount" />
 
@@ -75,6 +75,11 @@
                 <x-watch.watch-later-button
                     :video="$video"
                     :isWatchLater="$isWatchLater" />
+
+                <x-watch.playlist-button
+                    :video="$video"
+                    :playlists="$playlists"
+                    :playlist-video-ids="$playlistVideoIds" />
 
             </div>
 

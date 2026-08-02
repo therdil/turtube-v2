@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Subscription;
 use App\Models\Video;
 use App\Models\WatchHistory;
+use App\Models\VideoProgress;
 use App\Services\VideoProcessingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -46,6 +47,7 @@ class VideoController extends Controller
             'channel_name' => auth()->user()->name,
             'user_id'      => auth()->id(),
             'category_id'  => $request->category_id,
+            'status'       => $request->status,
             'views'        => 0,
             'duration'     => gmdate('i:s', $duration),
         ]);
@@ -62,18 +64,14 @@ class VideoController extends Controller
         if (auth()->check()) {
 
             WatchHistory::updateOrCreate(
-
                 [
                     'user_id'  => auth()->id(),
                     'video_id' => $video->id,
                 ],
-
                 [
                     'watched_at' => now(),
                 ]
-
             );
-
         }
 
         $video->load([
@@ -84,66 +82,74 @@ class VideoController extends Controller
 
         $video->loadCount('likes');
 
-$isLiked = false;
-$isSubscribed = false;
-$isWatchLater = false;
-$playlists = collect();
-$playlistVideoIds = collect();
+        $isLiked = false;
+        $isSubscribed = false;
+        $isWatchLater = false;
+        $progressSeconds = 0;
+        $playlists = collect();
+        $playlistVideoIds = collect();
 
-if (auth()->check()) {
+        if (auth()->check()) {
 
-    $isLiked = $video->likes()
-        ->where('user_id', auth()->id())
-        ->exists();
+            $isLiked = $video->likes()
+                ->where('user_id', auth()->id())
+                ->exists();
 
-    $isSubscribed = Subscription::where('subscriber_id', auth()->id())
-        ->where('channel_id', $video->user_id)
-        ->exists();
+            $isSubscribed = Subscription::where('subscriber_id', auth()->id())
+                ->where('channel_id', $video->user_id)
+                ->exists();
 
-    $isWatchLater = auth()->user()
-        ->watchLaterVideos()
-        ->where('video_id', $video->id)
-        ->exists();
+            $isWatchLater = auth()->user()
+                ->watchLaterVideos()
+                ->where('video_id', $video->id)
+                ->exists();
 
-    $playlists = auth()->user()
-        ->playlists()
-        ->orderBy('name')
-        ->get();
+            $progress = VideoProgress::where('user_id', auth()->id())
+                ->where('video_id', $video->id)
+                ->first();
 
-    $playlistVideoIds = $video->playlists()
-        ->where('user_id', auth()->id())
-        ->pluck('playlists.id');
-}
+            if ($progress) {
+                $progressSeconds = $progress->seconds;
+            }
 
-$subscribersCount = Subscription::where(
-    'channel_id',
-    $video->user_id
-)->count();
+            $playlists = auth()->user()
+                ->playlists()
+                ->orderBy('name')
+                ->get();
+
+            $playlistVideoIds = $video->playlists()
+                ->where('user_id', auth()->id())
+                ->pluck('playlists.id');
+        }
+
+        $subscribersCount = Subscription::where(
+            'channel_id',
+            $video->user_id
+        )->count();
 
         $recommendedVideos = Video::query()
-    ->where('id', '!=', $video->id)
-    ->when($video->category_id, function ($query) use ($video) {
-        $query->where('category_id', $video->category_id);
-    })
-    ->orderByDesc('views')
-    ->latest()
-    ->take(8)
-    ->get();
+            ->where('id', '!=', $video->id)
+            ->when($video->category_id, function ($query) use ($video) {
+                $query->where('category_id', $video->category_id);
+            })
+            ->orderByDesc('views')
+            ->latest()
+            ->take(8)
+            ->get();
 
-if ($recommendedVideos->count() < 8) {
+        if ($recommendedVideos->count() < 8) {
 
-    $missing = 8 - $recommendedVideos->count();
+            $missing = 8 - $recommendedVideos->count();
 
-    $additionalVideos = Video::query()
-        ->where('id', '!=', $video->id)
-        ->whereNotIn('id', $recommendedVideos->pluck('id'))
-        ->latest()
-        ->take($missing)
-        ->get();
+            $additionalVideos = Video::query()
+                ->where('id', '!=', $video->id)
+                ->whereNotIn('id', $recommendedVideos->pluck('id'))
+                ->latest()
+                ->take($missing)
+                ->get();
 
-    $recommendedVideos = $recommendedVideos->concat($additionalVideos);
-
-}
+            $recommendedVideos = $recommendedVideos->concat($additionalVideos);
+        }
 
         return view('videos.show', [
             'video' => $video,
@@ -154,6 +160,7 @@ if ($recommendedVideos->count() < 8) {
             'playlists' => $playlists,
             'playlistVideoIds' => $playlistVideoIds,
             'subscribersCount' => $subscribersCount,
+            'progressSeconds' => $progressSeconds,
         ]);
     }
 
@@ -163,7 +170,9 @@ if ($recommendedVideos->count() < 8) {
             abort(403);
         }
 
-        return view('videos.edit', compact('video'));
+        $categories = Category::orderBy('name')->get();
+
+        return view('videos.edit', compact('video', 'categories'));
     }
 
     public function myVideos()
@@ -185,6 +194,8 @@ if ($recommendedVideos->count() < 8) {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
+            'status' => 'required|in:public,private,unlisted,draft',
         ]);
 
         $video->update($validated);

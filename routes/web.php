@@ -12,6 +12,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionFeedController;
 use App\Http\Controllers\VideoController;
+use App\Http\Controllers\VideoProgressController;
 use App\Http\Controllers\WatchHistoryController;
 use App\Http\Controllers\WatchLaterController;
 use Illuminate\Support\Facades\Route;
@@ -116,6 +117,15 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/history', [WatchHistoryController::class, 'destroy'])
         ->name('history.destroy');    
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Video Progress
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/videos/{video}/progress', [VideoProgressController::class, 'store'])
+        ->name('videos.progress');    
 
     /*
     |--------------------------------------------------------------------------
@@ -167,5 +177,30 @@ Route::middleware('auth')->group(function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| Creator Studio
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')
+    ->prefix('studio')
+    ->name('studio.')
+    ->group(function () {
+
+        Route::get('/', \App\Http\Controllers\Studio\DashboardController::class)
+            ->name('dashboard');
+
+        Route::get('/videos', [\App\Http\Controllers\Studio\VideoController::class, 'index'])
+            ->name('videos.index');
+
+        Route::get('/comments', [\App\Http\Controllers\Studio\CommentController::class, 'index'])
+            ->name('comments.index');
+
+        Route::delete('/comments/{comment}', [\App\Http\Controllers\Studio\CommentController::class, 'destroy'])
+            ->name('comments.destroy');
+
+    });
 
 require __DIR__.'/auth.php';

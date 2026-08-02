@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\WatchHistory;
+use App\Models\VideoProgress;
 
 class Video extends Model
 {
@@ -21,10 +22,12 @@ class Video extends Model
         'duration',
         'user_id',
         'category_id',
+        'status',
     ];
 
     protected $attributes = [
         'views' => 0,
+        'status' => 'public',
     ];
 
     /**
@@ -74,6 +77,14 @@ class Video extends Model
     public function watchHistories(): HasMany
     {
         return $this->hasMany(WatchHistory::class);
+    }
+
+    /**
+     * Kullanıcının bu videodaki izleme ilerlemesi
+     */
+    public function progress(): HasMany
+    {
+        return $this->hasMany(VideoProgress::class);
     }
 
     /**

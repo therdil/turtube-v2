@@ -53,9 +53,7 @@
                     <div>
 
                         <label class="block mb-2 font-semibold">
-
                             Başlık
-
                         </label>
 
                         <input
@@ -71,9 +69,7 @@
                     <div>
 
                         <label class="block mb-2 font-semibold">
-
                             Açıklama
-
                         </label>
 
                         <textarea
@@ -87,9 +83,7 @@
                     <div>
 
                         <label class="block mb-2 font-semibold">
-
                             Kategori
-
                         </label>
 
                         <select
@@ -116,13 +110,42 @@
 
                     </div>
 
+                    {{-- Yayın Durumu --}}
+                    <div>
+
+                        <label class="block mb-2 font-semibold">
+                            Yayın Durumu
+                        </label>
+
+                        <select
+                            name="status"
+                            class="w-full rounded-xl bg-gray-800 border border-gray-700 focus:border-red-500 focus:ring-red-500 text-white">
+
+                            <option value="public" @selected(old('status') == 'public')>
+                                🌍 Herkese Açık
+                            </option>
+
+                            <option value="unlisted" @selected(old('status') == 'unlisted')>
+                                🔗 Liste Dışı
+                            </option>
+
+                            <option value="private" @selected(old('status') == 'private')>
+                                🔒 Gizli
+                            </option>
+
+                            <option value="draft" @selected(old('status') == 'draft')>
+                                📝 Taslak
+                            </option>
+
+                        </select>
+
+                    </div>
+
                     {{-- Video --}}
                     <div>
 
                         <label class="block mb-3 font-semibold">
-
                             Video Dosyası
-
                         </label>
 
                         <input

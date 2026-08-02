@@ -55,8 +55,22 @@
             </div>
         @endif
 
+        {{-- Watch Progress --}}
+        @if(auth()->check() && $video->progress->first())
+
+        <div class="watch-progress absolute bottom-1 left-0 z-30 h-1 w-full bg-black/40 transition-opacity duration-200">
+
+            <div
+            class="h-full bg-red-600"
+            style="width: {{ $video->progress->first()->percentage }}%">
+            </div>
+
+        </div>
+
+        @endif
+        
         {{-- Progress --}}
-        <div class="absolute bottom-0 left-0 z-30 h-1 w-full bg-black/20">
+        <div class="preview-progress-wrapper absolute bottom-1 left-0 z-30 h-1 w-full bg-black/20 opacity-0 transition-opacity duration-200">
             <div class="preview-progress h-full w-0 bg-red-600"></div>
         </div>
 

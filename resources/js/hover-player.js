@@ -33,6 +33,9 @@ function stopPreview(card) {
     const progress = card.querySelector(".preview-progress");
     const button = card.querySelector(".mute-button");
 
+    const watchProgress = card.querySelector(".watch-progress");
+    const previewWrapper = card.querySelector(".preview-progress-wrapper");
+
     if (!preview) return;
 
     preview.pause();
@@ -43,6 +46,14 @@ function stopPreview(card) {
 
     if (thumbnail) {
         thumbnail.style.opacity = "1";
+    }
+
+    if (watchProgress) {
+        watchProgress.style.opacity = "1";
+    }
+
+    if (previewWrapper) {
+        previewWrapper.style.opacity = "0";
     }
 
     if (progress) {
@@ -67,6 +78,9 @@ function playPreview(card) {
     const preview = card.querySelector(".preview-video");
     const button = card.querySelector(".mute-button");
 
+    const watchProgress = card.querySelector(".watch-progress");
+    const previewWrapper = card.querySelector(".preview-progress-wrapper");
+
     if (!preview) return;
 
     if (currentVideo && currentVideo !== preview) {
@@ -86,6 +100,14 @@ function playPreview(card) {
 
     if (thumbnail) {
         thumbnail.style.opacity = "0";
+    }
+
+    if (watchProgress) {
+        watchProgress.style.opacity = "0";
+    }
+
+    if (previewWrapper) {
+        previewWrapper.style.opacity = "1";
     }
 
     preview.style.opacity = "1";

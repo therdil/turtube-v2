@@ -12,10 +12,13 @@
 
     <div class="flex items-center gap-6">
 
-        <a href="{{ route('home') }}"
-           class="text-sm text-gray-400 hover:text-white">
+        <a
+            href="{{ route('home') }}"
+            class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-800 hover:text-white">
 
-            Siteye Dön
+            <x-heroicon-o-home class="h-5 w-5"/>
+
+            Ana Sayfa
 
         </a>
 

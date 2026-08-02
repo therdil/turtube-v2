@@ -154,6 +154,19 @@
                     </span>
 
                 </a>
+
+                <a
+                    href="{{ route('studio.dashboard') }}"
+                    class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                    {{ request()->routeIs('studio.*')
+                    ? 'bg-red-600 text-white'
+                    : 'hover:bg-gray-800 text-gray-300' }}">
+
+                    <x-heroicon-o-chart-bar class="h-5 w-5"/>
+
+                    <span>Creator Studio</span>
+
+                </a>
             @endauth
 
         </nav>

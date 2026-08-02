@@ -13,7 +13,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\WatchHistory;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable([
+    'name',
+    'email',
+    'password',
+
+    'channel_name',
+    'channel_description',
+    'avatar',
+    'banner',
+])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {

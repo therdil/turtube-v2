@@ -7,21 +7,43 @@
 <div class="mx-auto max-w-[1800px] px-6 py-6">
 
     {{-- Banner --}}
-    <div class="h-56 rounded-2xl bg-gradient-to-r from-red-600 via-red-500 to-gray-900"></div>
+    <div class="h-56 overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 via-red-500 to-gray-900">
+
+        @if($channel->banner)
+
+            <img
+                src="{{ asset('storage/'.$channel->banner) }}"
+                class="h-full w-full object-cover">
+
+        @endif
+
+    </div>
 
     {{-- Kanal Bilgisi --}}
     <div class="-mt-16 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
 
         <div class="flex items-end gap-6">
 
-            <div class="flex h-32 w-32 items-center justify-center rounded-full border-4 border-gray-950 bg-red-600 text-5xl font-bold text-white">
-                {{ strtoupper(substr($channel->name, 0, 1)) }}
-            </div>
+            @if($channel->avatar)
+
+                <img
+                    src="{{ asset('storage/'.$channel->avatar) }}"
+                    class="h-32 w-32 rounded-full border-4 border-gray-950 object-cover">
+
+            @else
+
+                <div class="flex h-32 w-32 items-center justify-center rounded-full border-4 border-gray-950 bg-red-600 text-5xl font-bold text-white">
+
+                    {{ strtoupper(substr($channel->name,0,1)) }}
+
+                </div>
+
+            @endif
 
             <div class="pb-2">
 
                 <h1 class="text-4xl font-bold text-white">
-                    {{ $channel->name }}
+                    {{ $channel->channel_name ?: $channel->name }}
                 </h1>
 
                 <p class="mt-2 text-gray-400">
@@ -29,6 +51,16 @@
                     •
                     {{ number_format($totalViews) }} görüntülenme
                 </p>
+
+                @if($channel->channel_description)
+
+                <p class="mt-4 max-w-3xl text-gray-300">
+
+                    {{ $channel->channel_description }}
+
+                </p>
+
+                @endif
 
             </div>
 

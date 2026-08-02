@@ -85,7 +85,7 @@
         <div class="space-y-1">
 
             <p class="text-sm font-medium text-gray-300">
-                {{ $video->channel_name }}
+                {{ $video->display_channel_name }}
             </p>
 
             @if($video->category)

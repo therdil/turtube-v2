@@ -29,13 +29,13 @@
                             class="flex items-center gap-4">
 
                             <div class="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-xl font-bold text-white">
-                                {{ strtoupper(substr($video->channel_name, 0, 1)) }}
+                                {{ strtoupper(substr($video->display_channel_name, 0, 1)) }}
                             </div>
 
                             <div>
 
                                 <h2 class="text-lg font-bold text-white hover:text-red-500 transition">
-                                    {{ $video->channel_name }}
+                                    {{ $video->display_channel_name }}
                                 </h2>
 
                                 <p class="text-sm text-gray-400">
@@ -136,7 +136,7 @@
                             </h3>
 
                             <p class="mt-2 text-sm text-gray-400">
-                                {{ $recommended->channel_name }}
+                                {{ $recommended->display_channel_name }}
                             </p>
 
                             <p class="text-xs text-gray-500">

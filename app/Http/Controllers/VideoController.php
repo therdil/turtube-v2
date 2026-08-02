@@ -6,8 +6,9 @@ use App\Http\Requests\StoreVideoRequest;
 use App\Models\Category;
 use App\Models\Subscription;
 use App\Models\Video;
-use App\Models\WatchHistory;
 use App\Models\VideoProgress;
+use App\Models\WatchHistory;
+use App\Services\AnalyticsService;
 use App\Services\VideoProcessingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,10 +16,14 @@ use Illuminate\Support\Facades\Storage;
 class VideoController extends Controller
 {
     protected VideoProcessingService $videoService;
+    protected AnalyticsService $analyticsService;
 
-    public function __construct(VideoProcessingService $videoService)
-    {
+    public function __construct(
+    VideoProcessingService $videoService,
+    AnalyticsService $analyticsService
+    ) {
         $this->videoService = $videoService;
+        $this->analyticsService = $analyticsService;
     }
 
     public function create()
@@ -59,7 +64,7 @@ class VideoController extends Controller
 
     public function show(Video $video)
     {
-        $video->increment('views');
+        $this->analyticsService->recordView($video);
 
         if (auth()->check()) {
 

@@ -60,7 +60,7 @@
             </h2>
 
             <p class="text-gray-400 mt-2">
-                👤 {{ $video->channel_name }}
+                👤 {{ $video->display_channel_name }}
             </p>
 
             <p class="text-gray-500 mt-2">

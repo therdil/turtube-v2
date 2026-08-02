@@ -19,8 +19,7 @@
             class="flex items-center gap-3 rounded-xl px-4 py-3 transition
             {{ request()->routeIs('studio.dashboard') ? 'bg-red-600 text-white' : 'hover:bg-gray-800 text-gray-300' }}">
 
-            📊
-            <span>Dashboard</span>
+            📊 <span>Dashboard</span>
 
         </a>
 
@@ -29,21 +28,16 @@
             class="flex items-center gap-3 rounded-xl px-4 py-3 transition
             {{ request()->routeIs('studio.videos.*') ? 'bg-red-600 text-white' : 'hover:bg-gray-800 text-gray-300' }}">
 
-            🎥
-            <span>İçerikler</span>
+            🎥 <span>İçerikler</span>
 
         </a>
 
         <a
-            href="#"
-            class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed">
+            href="{{ route('studio.analytics.index') }}"
+            class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+            {{ request()->routeIs('studio.analytics.*') ? 'bg-red-600 text-white' : 'hover:bg-gray-800 text-gray-300' }}">
 
-            📈
-            <span>Analytics</span>
-
-            <span class="ml-auto rounded-full bg-yellow-600 px-2 py-1 text-[10px]">
-                Yakında
-            </span>
+            📈 <span>Analytics</span>
 
         </a>
 
@@ -52,8 +46,18 @@
             class="flex items-center gap-3 rounded-xl px-4 py-3 transition
             {{ request()->routeIs('studio.comments.*') ? 'bg-red-600 text-white' : 'hover:bg-gray-800 text-gray-300' }}">
 
-            💬
-            <span>Yorumlar</span>
+            💬 <span>Yorumlar</span>
+
+        </a>
+
+        <a
+            href="{{ route('studio.channel.index') }}"
+            class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+            {{ request()->routeIs('studio.channel.*')
+            ? 'bg-red-600 text-white'
+            : 'hover:bg-gray-800 text-gray-300' }}">
+
+            📺 <span>Kanal</span>
 
         </a>
 
@@ -61,8 +65,7 @@
             href="#"
             class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed">
 
-            👥
-            <span>Aboneler</span>
+            👥 <span>Aboneler</span>
 
         </a>
 
@@ -70,8 +73,15 @@
             href="#"
             class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed">
 
-            📂
-            <span>Oynatma Listeleri</span>
+            📂 <span>Oynatma Listeleri</span>
+
+        </a>
+
+        <a
+            href="#"
+            class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed">
+
+            ⚙️ <span>Ayarlar</span>
 
         </a>
 
@@ -83,8 +93,7 @@
             href="{{ route('home') }}"
             class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-300 hover:bg-gray-800 transition">
 
-            🏠
-            <span>TurTube'a Dön</span>
+            🏠 <span>Ana Sayfa</span>
 
         </a>
 

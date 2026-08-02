@@ -143,6 +143,16 @@
                         class="absolute right-0 mt-3 w-64 overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 shadow-2xl">
 
                         <a
+                            href="{{ route('studio.dashboard') }}"
+                            class="flex items-center gap-3 px-5 py-3 transition hover:bg-gray-800">
+
+                            <x-heroicon-o-chart-bar class="h-5 w-5"/>
+
+                            Creator Studio
+
+                        </a>
+                        
+                        <a
                             href="{{ route('videos.mine') }}"
                             class="flex items-center gap-3 px-5 py-3 transition hover:bg-gray-800">
 

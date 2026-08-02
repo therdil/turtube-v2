@@ -201,6 +201,15 @@ Route::middleware('auth')
         Route::delete('/comments/{comment}', [\App\Http\Controllers\Studio\CommentController::class, 'destroy'])
             ->name('comments.destroy');
 
+        Route::get('/analytics', [\App\Http\Controllers\Studio\AnalyticsController::class, 'index'])
+            ->name('analytics.index');
+
+        Route::get('/channel', [\App\Http\Controllers\Studio\ChannelController::class, 'index'])
+            ->name('channel.index');
+
+        Route::put('/channel', [\App\Http\Controllers\Studio\ChannelController::class, 'update'])
+            ->name('channel.update');
+
     });
 
 require __DIR__.'/auth.php';

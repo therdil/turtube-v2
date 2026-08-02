@@ -114,4 +114,12 @@ class Video extends Model
     {
         return asset('storage/' . $this->video_path);
     }
+
+    /**
+     * Kanal adını kullanıcıdan al
+     */
+        public function getDisplayChannelNameAttribute(): string
+    {
+        return $this->user->channel_name ?: $this->user->name;
+    }
 }

@@ -3,68 +3,98 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreVideoRequest;
+use App\Http\Requests\UpdateVideoRequest;
+use App\Jobs\ProcessUploadedVideo;
 use App\Models\Category;
 use App\Models\Subscription;
 use App\Models\Video;
 use App\Models\VideoProgress;
 use App\Models\WatchHistory;
 use App\Services\AnalyticsService;
-use App\Services\VideoProcessingService;
+use App\Services\VideoDeletionService;
+use App\Services\ContentCache;
+use App\Services\VideoRecommendationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class VideoController extends Controller
 {
-    protected VideoProcessingService $videoService;
     protected AnalyticsService $analyticsService;
 
     public function __construct(
-    VideoProcessingService $videoService,
-    AnalyticsService $analyticsService
+        AnalyticsService $analyticsService,
+        protected VideoDeletionService $videoDeletionService,
+        protected VideoRecommendationService $recommendationService
     ) {
-        $this->videoService = $videoService;
         $this->analyticsService = $analyticsService;
     }
 
     public function create()
     {
+        $this->authorize('create', Video::class);
+
         $categories = Category::orderBy('name')->get();
 
-        return view('videos.create', compact('categories'));
+        $uploadDefaults = [
+            'description' => auth()->user()->default_video_description,
+            'status' => auth()->user()->default_video_status ?: 'public',
+            'license' => auth()->user()->default_video_license ?: 'standard',
+        ];
+
+        return view('videos.create', compact('categories', 'uploadDefaults'));
     }
 
     public function store(StoreVideoRequest $request)
     {
-        $videoPath = $request->file('video')->store('videos', 'public');
+        $this->authorize('create', Video::class);
 
-        $thumbnailPath = $this->videoService->generateThumbnail($videoPath);
+        $videoPath = $request->file('video')->store('videos', config('video.disk'));
+        $thumbnailPath = $request->hasFile('thumbnail')
+            ? $request->file('thumbnail')->store('thumbnails', config('video.disk'))
+            : null;
+        $tags = collect($request->input('tags', []))
+            ->map(fn ($tag) => trim((string) $tag))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
 
-        $previewPath = $this->videoService->generatePreview($videoPath);
-
-        $duration = $this->videoService->getDuration($videoPath);
-
-        Video::create([
+        $video = Video::create([
             'title'        => $request->title,
             'description'  => $request->description,
-            'thumbnail'    => $thumbnailPath,
-            'preview'      => $previewPath,
             'video_path'   => $videoPath,
+            'thumbnail'    => $thumbnailPath,
+            'processing_status' => 'pending',
             'channel_name' => auth()->user()->name,
             'user_id'      => auth()->id(),
             'category_id'  => $request->category_id,
             'status'       => $request->status,
+            'license'      => $request->license,
+            'tags'         => $tags,
+            'is_short'     => $request->boolean('is_short'),
+            'is_premium'   => $request->boolean('is_premium'),
             'views'        => 0,
-            'duration'     => gmdate('i:s', $duration),
+            'duration'     => 0,
         ]);
+
+        ProcessUploadedVideo::dispatch($video);
+        ContentCache::flush();
 
         return redirect()
             ->route('videos.mine')
-            ->with('success', 'Video başarıyla yüklendi!');
+            ->with('success', 'Video yüklendi ve işlenmek üzere sıraya alındı.');
     }
 
-    public function show(Video $video)
+    public function show(Request $request, Video $video)
     {
-        $this->analyticsService->recordView($video);
+        abort_unless($video->isVisibleTo(auth()->user()), 404);
+        abort_unless($video->isPremiumAccessibleTo(auth()->user()), 403);
+
+        if ($video->age_restriction > 0 && ! $request->session()->get('age-confirmed-videos.'.$video->id)) {
+            return response()->view('videos.age-gate', compact('video'));
+        }
+
+        $this->analyticsService->recordView($video, $request);
 
         if (auth()->check()) {
 
@@ -82,14 +112,26 @@ class VideoController extends Controller
         $video->load([
             'user',
             'category',
-            'comments.user',
+            'comments' => fn ($query) => $query
+                ->whereNull('parent_id')
+                ->with('user', 'replies.user')
+                ->orderByDesc('is_pinned')
+                ->latest(),
+            'chapters',
+            'captions',
         ]);
 
         $video->loadCount('likes');
 
+        $ratingSummary = $video->ratings()
+            ->selectRaw('AVG(rating) as average_rating, COUNT(*) as ratings_count')
+            ->first();
+
         $isLiked = false;
         $isSubscribed = false;
         $isWatchLater = false;
+        $isFavorited = false;
+        $userRating = null;
         $progressSeconds = 0;
         $playlists = collect();
         $playlistVideoIds = collect();
@@ -108,6 +150,15 @@ class VideoController extends Controller
                 ->watchLaterVideos()
                 ->where('video_id', $video->id)
                 ->exists();
+
+            $isFavorited = auth()->user()
+                ->favoriteVideos()
+                ->whereKey($video->id)
+                ->exists();
+
+            $userRating = $video->ratings()
+                ->where('user_id', auth()->id())
+                ->value('rating');
 
             $progress = VideoProgress::where('user_id', auth()->id())
                 ->where('video_id', $video->id)
@@ -132,29 +183,7 @@ class VideoController extends Controller
             $video->user_id
         )->count();
 
-        $recommendedVideos = Video::query()
-            ->where('id', '!=', $video->id)
-            ->when($video->category_id, function ($query) use ($video) {
-                $query->where('category_id', $video->category_id);
-            })
-            ->orderByDesc('views')
-            ->latest()
-            ->take(8)
-            ->get();
-
-        if ($recommendedVideos->count() < 8) {
-
-            $missing = 8 - $recommendedVideos->count();
-
-            $additionalVideos = Video::query()
-                ->where('id', '!=', $video->id)
-                ->whereNotIn('id', $recommendedVideos->pluck('id'))
-                ->latest()
-                ->take($missing)
-                ->get();
-
-            $recommendedVideos = $recommendedVideos->concat($additionalVideos);
-        }
+        $recommendedVideos = $this->recommendationService->forVideo($video, auth()->user());
 
         return view('videos.show', [
             'video' => $video,
@@ -162,6 +191,10 @@ class VideoController extends Controller
             'isLiked' => $isLiked,
             'isSubscribed' => $isSubscribed,
             'isWatchLater' => $isWatchLater,
+            'isFavorited' => $isFavorited,
+            'userRating' => $userRating,
+            'ratingAverage' => round((float) ($ratingSummary->average_rating ?? 0), 1),
+            'ratingsCount' => (int) ($ratingSummary->ratings_count ?? 0),
             'playlists' => $playlists,
             'playlistVideoIds' => $playlistVideoIds,
             'subscribersCount' => $subscribersCount,
@@ -171,11 +204,11 @@ class VideoController extends Controller
 
     public function edit(Video $video)
     {
-        if ($video->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('update', $video);
 
         $categories = Category::orderBy('name')->get();
+
+        $video->load(['chapters', 'captions']);
 
         return view('videos.edit', compact('video', 'categories'));
     }
@@ -190,20 +223,43 @@ class VideoController extends Controller
         return view('videos.my-videos', compact('videos'));
     }
 
-    public function update(Request $request, Video $video)
+    public function confirmAge(Request $request, Video $video)
     {
-        if ($video->user_id !== auth()->id()) {
-            abort(403);
+        abort_unless($video->isVisibleTo(auth()->user()), 404);
+
+        $request->validate(['confirmed' => ['accepted']]);
+        $request->session()->put('age-confirmed-videos.'.$video->id, true);
+
+        return redirect()->route('videos.show', $video);
+    }
+    public function update(UpdateVideoRequest $request, Video $video)
+    {
+        $this->authorize('update', $video);
+
+        $validated = $request->validated();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Thumbnail Güncelle
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->hasFile('thumbnail')) {
+
+            if (
+                $video->thumbnail &&
+                Storage::disk(config('video.disk'))->exists($video->thumbnail)
+            ) {
+                Storage::disk(config('video.disk'))->delete($video->thumbnail);
+            }
+
+            $validated['thumbnail'] = $request
+                ->file('thumbnail')
+                ->store('thumbnails', config('video.disk'));
         }
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
-            'status' => 'required|in:public,private,unlisted,draft',
-        ]);
-
         $video->update($validated);
+        ContentCache::flush();
 
         return redirect()
             ->route('videos.mine')
@@ -212,23 +268,10 @@ class VideoController extends Controller
 
     public function destroy(Video $video)
     {
-        if ($video->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('delete', $video);
 
-        if ($video->thumbnail && Storage::disk('public')->exists($video->thumbnail)) {
-            Storage::disk('public')->delete($video->thumbnail);
-        }
-
-        if ($video->preview && Storage::disk('public')->exists($video->preview)) {
-            Storage::disk('public')->delete($video->preview);
-        }
-
-        if ($video->video_path && Storage::disk('public')->exists($video->video_path)) {
-            Storage::disk('public')->delete($video->video_path);
-        }
-
-        $video->delete();
+        $this->videoDeletionService->delete($video);
+        ContentCache::flush();
 
         return redirect()
             ->route('videos.mine')

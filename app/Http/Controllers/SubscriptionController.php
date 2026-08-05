@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Models\User;
+use App\Notifications\NewSubscriberNotification;
+use App\Services\ContentCache;
 use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
@@ -35,8 +37,12 @@ class SubscriptionController extends Controller
                 'channel_id' => $channel->id,
             ]);
 
+            $channel->notify(new NewSubscriberNotification(auth()->user()));
+
             $subscribed = true;
         }
+
+        ContentCache::flush();
 
         return response()->json([
             'success' => true,

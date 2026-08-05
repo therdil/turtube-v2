@@ -17,6 +17,10 @@ class WatchHistoryController extends Controller
                 'video.category',
             ])
             ->where('user_id', auth()->id())
+            ->whereHas('video', function ($query) {
+                $query->where('status', 'public')
+                    ->orWhere('user_id', auth()->id());
+            })
             ->orderByDesc('watched_at')
             ->paginate(20);
 

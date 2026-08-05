@@ -16,6 +16,7 @@ class VideoAnalytics extends Model
         'watch_time',
         'likes',
         'comments',
+        'impressions',
     ];
 
     protected $casts = [

@@ -1,13 +1,15 @@
 <header class="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/95 backdrop-blur">
 
-    <div class="flex h-16 items-center justify-between px-6">
+    <div class="flex h-16 items-center justify-between gap-2 px-3 sm:px-6">
 
         {{-- Sol --}}
-        <div class="flex items-center gap-4">
+        <div class="flex min-w-0 items-center gap-2 sm:gap-4">
 
             <button
                 type="button"
-                class="rounded-xl p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white">
+                @click="sidebarOpen = true"
+                aria-label="Menüyü aç"
+                class="shrink-0 rounded-xl p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white">
 
                 <x-heroicon-o-bars-3 class="h-6 w-6"/>
 
@@ -15,18 +17,20 @@
 
             <a
                 href="{{ route('home') }}"
-                class="flex items-center gap-2">
+                class="flex shrink-0 items-center gap-2">
 
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600">
+                @if (filled($siteSettings->logo ?? null))
+                    <img src="{{ asset('storage/'.$siteSettings->logo) }}" alt="{{ $siteSettings->site_name }}" class="h-9 w-9 rounded-xl object-contain sm:h-10 sm:w-10">
+                @else
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 sm:h-10 sm:w-10">
+                        <x-heroicon-o-play class="h-6 w-6 text-white"/>
+                    </div>
+                @endif
 
-                    <x-heroicon-o-play class="h-6 w-6 text-white"/>
-
-                </div>
-
-                <div>
+                <div class="hidden sm:block">
 
                     <div class="text-xl font-bold tracking-tight">
-                        TurTube
+                        {{ $siteSettings->site_name ?? 'TurTube' }}
                     </div>
 
                     <div class="-mt-1 text-xs text-gray-500">
@@ -40,12 +44,13 @@
         </div>
 
         {{-- Arama --}}
-        <div class="mx-8 hidden max-w-2xl flex-1 md:block">
+        <div class="mx-4 hidden max-w-2xl flex-1 md:block lg:mx-8">
 
             <form
                 action="{{ route('search') }}"
                 method="GET"
-                class="relative">
+                class="relative"
+                data-live-search-form>
 
                 <input
                     type="text"
@@ -53,6 +58,10 @@
                     value="{{ request('q') }}"
                     placeholder="Video ara..."
                     autocomplete="off"
+                    data-live-search-input
+                    data-suggestions-url="{{ route('search.suggestions') }}"
+                    aria-autocomplete="list"
+                    aria-expanded="false"
                     class="w-full rounded-xl border border-gray-800 bg-gray-900 py-3 pl-12 pr-14 text-sm text-white placeholder:text-gray-500 focus:border-red-500 focus:outline-none">
 
                 <x-heroicon-o-magnifying-glass
@@ -66,18 +75,28 @@
 
                 </button>
 
+                <div data-live-search-results class="absolute inset-x-0 top-[calc(100%+0.5rem)] z-50 hidden overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950 shadow-2xl" role="listbox"></div>
+
             </form>
 
         </div>
 
         {{-- Sağ --}}
-        <div class="flex items-center gap-3">
+        <div class="flex shrink-0 items-center gap-1.5 sm:gap-3">
+
+            <button
+                type="button"
+                @click="searchOpen = true"
+                aria-label="Aramayı aç"
+                class="rounded-xl p-2 text-gray-300 transition hover:bg-gray-800 md:hidden">
+                <x-heroicon-o-magnifying-glass class="h-6 w-6"/>
+            </button>
 
             @guest
 
                 <a
                     href="{{ route('login') }}"
-                    class="rounded-xl border border-gray-700 px-4 py-2 text-sm transition hover:bg-gray-800">
+                    class="rounded-xl border border-gray-700 px-3 py-2 text-sm transition hover:bg-gray-800 sm:px-4">
 
                     Giriş
 
@@ -85,9 +104,9 @@
 
                 <a
                     href="{{ route('register') }}"
-                    class="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium transition hover:bg-red-700">
+                    class="rounded-xl bg-red-600 px-3 py-2 text-sm font-medium transition hover:bg-red-700 sm:px-4">
 
-                    Kayıt Ol
+                    Kayıt<span class="hidden sm:inline"> Ol</span>
 
                 </a>
 
@@ -105,12 +124,19 @@
 
                 </a>
 
-                <button
-                    class="rounded-xl p-2 transition hover:bg-gray-800">
+                @php($unreadNotifications = auth()->user()->unreadNotifications()->count())
+                <a
+                    href="{{ route('notifications.index') }}"
+                    aria-label="Bildirimler"
+                    class="relative rounded-xl p-2 transition hover:bg-gray-800">
 
                     <x-heroicon-o-bell class="h-6 w-6"/>
 
-                </button>
+                    @if ($unreadNotifications)
+                        <span class="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">{{ min($unreadNotifications, 9) }}{{ $unreadNotifications > 9 ? '+' : '' }}</span>
+                    @endif
+
+                </a>
 
                 <div
                     x-data="{ open:false }"

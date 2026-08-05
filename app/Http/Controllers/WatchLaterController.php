@@ -14,6 +14,10 @@ class WatchLaterController extends Controller
     {
         $videos = auth()->user()
             ->watchLaterVideos()
+            ->where(function ($query) {
+                $query->where('status', 'public')
+                    ->orWhere('videos.user_id', auth()->id());
+            })
             ->with([
                 'user',
                 'category',
@@ -29,6 +33,11 @@ class WatchLaterController extends Controller
      */
     public function toggle(Video $video)
     {
+        abort_unless(
+            $video->isVisibleTo(auth()->user()) && $video->isPremiumAccessibleTo(auth()->user()),
+            404
+        );
+
         $user = auth()->user();
 
         $exists = $user->watchLaterVideos()

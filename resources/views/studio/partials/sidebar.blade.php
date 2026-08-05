@@ -62,24 +62,24 @@
         </a>
 
         <a
-            href="#"
-            class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed">
+            href="{{ route('subscriptions.index') }}"
+            class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-300 transition hover:bg-gray-800">
 
             👥 <span>Aboneler</span>
 
         </a>
 
         <a
-            href="#"
-            class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed">
+            href="{{ route('playlists.index') }}"
+            class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-300 transition hover:bg-gray-800">
 
             📂 <span>Oynatma Listeleri</span>
 
         </a>
 
         <a
-            href="#"
-            class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed">
+            href="{{ route('studio.channel.index') }}"
+            class="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-300 transition hover:bg-gray-800">
 
             ⚙️ <span>Ayarlar</span>
 

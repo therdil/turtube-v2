@@ -59,15 +59,17 @@ class PlaylistController extends Controller
      */
     public function show(Playlist $playlist): View
     {
-        abort_unless(
-            $playlist->is_public || $playlist->user_id === auth()->id(),
-            403
-        );
+        $this->authorize('view', $playlist);
+
+        $isOwner = $playlist->user_id === auth()->id();
 
         $playlist->load([
             'user',
-            'videos.user',
-            'videos.category',
+            'videos' => function ($query) use ($isOwner) {
+                $query
+                    ->when(! $isOwner, fn ($videos) => $videos->published())
+                    ->with(['user', 'category']);
+            },
         ]);
 
         return view('playlists.show', compact('playlist'));
@@ -78,13 +80,20 @@ class PlaylistController extends Controller
      */
     public function toggle(Request $request, Playlist $playlist): JsonResponse|RedirectResponse
     {
-        abort_unless($playlist->user_id === auth()->id(), 403);
+        $this->authorize('update', $playlist);
 
         $validated = $request->validate([
             'video_id' => ['required', 'exists:videos,id'],
         ]);
 
         $videoId = $validated['video_id'];
+
+        $video = \App\Models\Video::findOrFail($videoId);
+
+        abort_unless(
+            $video->isVisibleTo(auth()->user()) && $video->isPremiumAccessibleTo(auth()->user()),
+            404
+        );
 
         $exists = $playlist->videos()
             ->where('video_id', $videoId)
@@ -121,7 +130,7 @@ class PlaylistController extends Controller
      */
     public function destroy(Playlist $playlist): RedirectResponse
     {
-        abort_unless($playlist->user_id === auth()->id(), 403);
+        $this->authorize('delete', $playlist);
 
         $playlist->delete();
 

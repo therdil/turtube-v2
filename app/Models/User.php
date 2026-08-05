@@ -22,6 +22,18 @@ use App\Models\WatchHistory;
     'channel_description',
     'avatar',
     'banner',
+    'social_links',
+    'channel_tags',
+    'seo_keywords',
+    'channel_language',
+    'default_video_status',
+    'default_video_description',
+    'default_video_license',
+    'is_admin',
+    'is_verified',
+    'premium_until',
+    'banned_at',
+    'ban_reason',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -94,6 +106,26 @@ class User extends Authenticatable
         )->withTimestamps();
     }
 
+    public function favoriteVideos(): BelongsToMany
+    {
+        return $this->belongsToMany(Video::class, 'video_favorites')->withTimestamps();
+    }
+
+    public function videoRatings(): HasMany
+    {
+        return $this->hasMany(VideoRating::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function videoReports(): HasMany
+    {
+        return $this->hasMany(VideoReport::class, 'reporter_id');
+    }
+
     /**
      * Kullanıcının oynatma listeleri
      */
@@ -119,6 +151,16 @@ class User extends Authenticatable
             ->latest('watched_at');
     }
 
+    public function liveStreams(): HasMany
+    {
+        return $this->hasMany(LiveStream::class);
+    }
+
+    public function hasPremiumAccess(): bool
+    {
+        return $this->premium_until?->isFuture() ?? false;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -129,6 +171,13 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
+            'is_verified' => 'boolean',
+            'premium_until' => 'datetime',
+            'banned_at' => 'datetime',
+            'social_links' => 'array',
+            'channel_tags' => 'array',
+            'seo_keywords' => 'array',
         ];
     }
 }

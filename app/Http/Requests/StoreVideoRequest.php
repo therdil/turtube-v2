@@ -24,6 +24,7 @@ class StoreVideoRequest extends FormRequest
             'description' => [
                 'nullable',
                 'string',
+                'max:5000',
             ],
 
             'category_id' => [
@@ -36,12 +37,22 @@ class StoreVideoRequest extends FormRequest
                 'in:public,private,unlisted,draft',
             ],
 
+            'license' => ['required', 'in:standard,creative_commons'],
+
+            'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'tags' => ['nullable', 'array', 'max:12'],
+            'tags.*' => ['string', 'max:50', 'distinct'],
+
             'video' => [
                 'required',
                 'file',
+                'extensions:mp4',
                 'mimetypes:video/mp4',
                 'max:51200', // 50 MB
             ],
+
+            'is_short' => ['nullable', 'boolean'],
+            'is_premium' => ['nullable', 'boolean'],
 
         ];
     }
@@ -55,6 +66,8 @@ class StoreVideoRequest extends FormRequest
             'video.required' => 'Lütfen bir video seçin.',
             'video.mimetypes' => 'Sadece MP4 formatındaki videolar yüklenebilir.',
             'video.max' => 'Video boyutu en fazla 50 MB olabilir.',
+            'thumbnail.image' => 'Thumbnail bir görsel dosyası olmalıdır.',
+            'thumbnail.max' => 'Thumbnail boyutu en fazla 5 MB olabilir.',
 
             'category_id.exists' => 'Geçersiz kategori seçildi.',
 

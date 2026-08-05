@@ -1,3 +1,77 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+::selection {
+    background: rgb(220 38 38 / 0.45);
+    color: white;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.watch-player-shell.turtube-cinema-mode {
+    position: fixed;
+    z-index: 70;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem;
+    overflow: auto;
+    background: rgba(0, 0, 0, 0.97);
+}
+
+.watch-player-shell.turtube-cinema-mode .watch-player-frame,
+.watch-player-shell.turtube-cinema-mode > :not(.watch-player-frame) {
+    width: min(100%, 1400px);
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.watch-player-frame {
+    transition: transform 200ms ease, opacity 200ms ease, box-shadow 200ms ease;
+}
+
+.watch-player-shell.is-fullscreen .watch-player-frame {
+    border-radius: 0;
+}
+
+.watch-player-shell.turtube-mini-player {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 80;
+    width: min(24rem, calc(100vw - 2rem));
+}
+
+.watch-player-shell.turtube-mini-player > :not(.watch-player-frame) {
+    display: none;
+}
+
+.watch-player-shell.turtube-mini-player .watch-player-frame {
+    border: 1px solid rgb(63 63 70);
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.55);
+}
+
+.watch-player-shell.turtube-mini-player [data-player-mini-close] {
+    display: inline-flex;
+}
+
+@media (max-width: 640px) {
+    .watch-player-shell.turtube-mini-player {
+        right: 0.75rem;
+        bottom: 0.75rem;
+        width: min(20rem, calc(100vw - 1.5rem));
+    }
+}

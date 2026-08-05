@@ -17,6 +17,7 @@ class SubscriptionFeedController extends Controller
             ->select('users.id');
 
         $videos = Video::query()
+            ->published()
             ->whereIn('user_id', $channelIds)
             ->with(['user', 'category'])
             ->latest()

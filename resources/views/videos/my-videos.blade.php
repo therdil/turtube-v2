@@ -67,6 +67,12 @@
                 👁 {{ number_format($video->views) }} görüntülenme
             </p>
 
+            @if ($video->processing_status !== 'ready')
+                <p class="mt-2 text-sm {{ $video->processing_status === 'failed' ? 'text-red-400' : 'text-amber-300' }}">
+                    {{ $video->processing_status === 'failed' ? 'Video işlenemedi. FFmpeg ayarlarını kontrol edin.' : 'Video arka planda işleniyor.' }}
+                </p>
+            @endif
+
         </div>
 
         <!-- İşlemler -->

@@ -5,7 +5,6 @@ namespace App\Services;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class VideoProcessingService
@@ -15,91 +14,109 @@ class VideoProcessingService
 
     public function __construct()
     {
-        $ffmpeg = 'D:\\Tools\\FFmpeg\\bin\\ffmpeg.exe';
-        $ffprobe = 'D:\\Tools\\FFmpeg\\bin\\ffprobe.exe';
-
-        $config = [
-            'ffmpeg.binaries'  => $ffmpeg,
-            'ffprobe.binaries' => $ffprobe,
-            'timeout'          => 3600,
-        ];
-
-        $this->ffmpeg = FFMpeg::create($config);
-        $this->ffprobe = FFProbe::create($config);
+        $this->ffmpeg = FFMpeg::create([
+            'ffmpeg.binaries' => config('video.ffmpeg_binary'),
+            'ffprobe.binaries' => config('video.ffprobe_binary'),
+            'timeout' => 3600,
+        ]);
+        $this->ffprobe = FFProbe::create([
+            'ffmpeg.binaries' => config('video.ffmpeg_binary'),
+            'ffprobe.binaries' => config('video.ffprobe_binary'),
+            'timeout' => 3600,
+        ]);
     }
 
-    /**
-     * Thumbnail oluşturur.
-     */
     public function generateThumbnail(string $videoPath): string
     {
-        $absoluteVideo = Storage::disk('public')->path($videoPath);
+        return MediaStorage::withLocalPath($videoPath, function (string $source) {
+            $temporary = MediaStorage::temporaryPath('jpg');
+            $relative = 'thumbnails/'.Str::uuid().'.jpg';
 
-        if (!Storage::disk('public')->exists('thumbnails')) {
-            Storage::disk('public')->makeDirectory('thumbnails');
-        }
+            $this->ffmpeg->open($source)->frame(TimeCode::fromSeconds(1))->save($temporary);
+            MediaStorage::putFile($relative, $temporary);
 
-        $thumbnailRelative = 'thumbnails/' . Str::uuid() . '.jpg';
-        $thumbnailAbsolute = Storage::disk('public')->path($thumbnailRelative);
-
-        $this->ffmpeg
-            ->open($absoluteVideo)
-            ->frame(TimeCode::fromSeconds(1))
-            ->save($thumbnailAbsolute);
-
-        return $thumbnailRelative;
+            return $relative;
+        });
     }
 
-    /**
-     * Hover için kısa preview videosu oluşturur.
-     */
     public function generatePreview(string $videoPath): string
     {
-        $absoluteVideo = Storage::disk('public')->path($videoPath);
+        return MediaStorage::withLocalPath($videoPath, function (string $source) use ($videoPath) {
+            $temporary = MediaStorage::temporaryPath('mp4');
+            $relative = 'previews/'.Str::uuid().'.mp4';
+            $duration = max(1, $this->getDuration($videoPath));
+            $length = min(6, max(1, $duration - 1));
 
-        if (!Storage::disk('public')->exists('previews')) {
-            Storage::disk('public')->makeDirectory('previews');
-        }
+            $this->run(sprintf(
+                '"%s" -y -ss 1 -i "%s" -t %d -vf "scale=854:-2" -c:v libx264 -preset veryfast -crf 30 -c:a aac -b:a 128k -movflags +faststart "%s"',
+                config('video.ffmpeg_binary'),
+                $source,
+                $length,
+                $temporary,
+            ));
 
-        $previewRelative = 'previews/' . Str::uuid() . '.mp4';
-        $previewAbsolute = Storage::disk('public')->path($previewRelative);
+            MediaStorage::putFile($relative, $temporary);
 
-        $duration = max(1, $this->getDuration($videoPath));
-
-        $start = 1;
-        $length = min(6, max(1, $duration - $start));
-
-        $ffmpeg = 'D:\\Tools\\FFmpeg\\bin\\ffmpeg.exe';
-
-        $command = sprintf(
-            '"%s" -y -ss %d -i "%s" -t %d -vf "scale=854:-2" -c:v libx264 -preset veryfast -crf 30 -c:a aac -b:a 128k "%s"',
-            $ffmpeg,
-            $start,
-            $absoluteVideo,
-            $length,
-            $previewAbsolute
-        );
-
-        exec($command, $output, $result);
-
-        if ($result !== 0) {
-            throw new \RuntimeException(
-                "Preview oluşturulamadı.\n\n" . implode("\n", $output)
-            );
-        }
-
-        return $previewRelative;
+            return $relative;
+        });
     }
 
-    /**
-     * Video süresini saniye olarak döndürür.
-     */
+    /** @return array<int, array{label: string, path: string}> */
+    public function generateQualities(string $videoPath): array
+    {
+        $sourceHeight = $this->getVideoHeight($videoPath);
+        $qualities = [[
+            'label' => $sourceHeight ? $sourceHeight.'p' : 'Orijinal',
+            'path' => $videoPath,
+        ]];
+
+        if ($sourceHeight <= 0) {
+            return $qualities;
+        }
+
+        return MediaStorage::withLocalPath($videoPath, function (string $source) use ($sourceHeight, $qualities) {
+            foreach ([1080 => '5M', 720 => '2800k', 480 => '1400k'] as $height => $bitrate) {
+                if ($height >= $sourceHeight) {
+                    continue;
+                }
+
+                $temporary = MediaStorage::temporaryPath('mp4');
+                $relative = 'qualities/'.Str::uuid().'-'.$height.'p.mp4';
+                $result = $this->run(sprintf(
+                    '"%s" -y -i "%s" -vf "scale=-2:%d" -c:v libx264 -preset veryfast -b:v %s -maxrate %s -bufsize %s -c:a aac -b:a 128k -movflags +faststart "%s"',
+                    config('video.ffmpeg_binary'), $source, $height, $bitrate, $bitrate, $bitrate, $temporary,
+                ), false);
+
+                if ($result === 0 && is_file($temporary)) {
+                    MediaStorage::putFile($relative, $temporary);
+                    $qualities[] = ['label' => $height.'p', 'path' => $relative];
+                } else {
+                    @unlink($temporary);
+                }
+            }
+
+            return $qualities;
+        });
+    }
+
     public function getDuration(string $videoPath): int
     {
-        $absoluteVideo = Storage::disk('public')->path($videoPath);
+        return MediaStorage::withLocalPath($videoPath, fn (string $source) => (int) $this->ffprobe->format($source)->get('duration'));
+    }
 
-        return (int) $this->ffprobe
-            ->format($absoluteVideo)
-            ->get('duration');
+    private function getVideoHeight(string $videoPath): int
+    {
+        return MediaStorage::withLocalPath($videoPath, fn (string $source) => (int) $this->ffprobe->streams($source)->videos()->first()->get('height'));
+    }
+
+    private function run(string $command, bool $throwOnFailure = true): int
+    {
+        exec($command, $output, $result);
+
+        if ($throwOnFailure && $result !== 0) {
+            throw new \RuntimeException('FFmpeg medya dosyası üretemedi: '.implode("\n", $output));
+        }
+
+        return $result;
     }
 }

@@ -1,6 +1,16 @@
-<aside class="w-64 shrink-0 border-r border-gray-800 bg-gray-950">
+<aside
+    :class="{ '!translate-x-0': sidebarOpen }"
+    :style="window.innerWidth < 1024 ? `transform: translateX(${sidebarOpen ? '0' : '-100%'})` : ''"
+    class="fixed inset-y-0 left-0 z-[60] w-64 shrink-0 -translate-x-full border-r border-gray-800 bg-gray-950 shadow-2xl transition-transform duration-200 lg:sticky lg:top-16 lg:z-0 lg:h-[calc(100vh-4rem)] lg:translate-x-0 lg:shadow-none">
 
     <div class="flex h-full flex-col p-4">
+
+        <div class="mb-5 flex items-center justify-between lg:hidden">
+            <span class="text-sm font-semibold uppercase tracking-[0.18em] text-gray-500">Menü</span>
+            <button type="button" @click="sidebarOpen = false" aria-label="Menüyü kapat" class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white">
+                <x-heroicon-o-x-mark class="h-5 w-5"/>
+            </button>
+        </div>
 
         {{-- Ana Menü --}}
         <nav class="space-y-2">
@@ -41,6 +51,28 @@
                 <span class="font-medium">
                     Kanallar
                 </span>
+
+            </a>
+
+            <a
+                href="{{ route('shorts.index') }}"
+                class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                {{ request()->routeIs('shorts.*') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+
+                <x-heroicon-o-bolt class="h-5 w-5"/>
+
+                <span class="font-medium">Shorts</span>
+
+            </a>
+
+            <a
+                href="{{ route('live.index') }}"
+                class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                {{ request()->routeIs('live.*') ? 'bg-red-600 text-white' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+
+                <x-heroicon-o-signal class="h-5 w-5"/>
+
+                <span class="font-medium">Canlı Yayın</span>
 
             </a>
 
@@ -156,6 +188,30 @@
                 </a>
 
                 <a
+                    href="{{ route('favorites.index') }}"
+                    class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                    {{ request()->routeIs('favorites.*') ? 'bg-amber-500 text-gray-950' : 'text-gray-300 hover:bg-gray-900 hover:text-white' }}">
+
+                    <x-heroicon-o-star class="h-5 w-5"/>
+
+                    <span class="font-medium">
+                        Favorilerim
+                    </span>
+
+                </a>
+
+                <a
+                    href="{{ route('premium.index') }}"
+                    class="flex items-center gap-3 rounded-xl px-4 py-3 transition
+                    {{ request()->routeIs('premium.*') ? 'bg-amber-500 text-gray-950' : 'text-amber-200 hover:bg-amber-400/10' }}">
+
+                    <x-heroicon-o-sparkles class="h-5 w-5"/>
+
+                    <span class="font-medium">Premium</span>
+
+                </a>
+
+                <a
                     href="{{ route('studio.dashboard') }}"
                     class="flex items-center gap-3 rounded-xl px-4 py-3 transition
                     {{ request()->routeIs('studio.*')
@@ -167,6 +223,18 @@
                     <span>Creator Studio</span>
 
                 </a>
+
+                @if (auth()->user()->is_admin)
+                    <a
+                        href="{{ route('admin.dashboard') }}"
+                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-amber-200 transition hover:bg-amber-400/10">
+
+                        <x-heroicon-o-shield-check class="h-5 w-5"/>
+
+                        <span>Yönetim Paneli</span>
+
+                    </a>
+                @endif
             @endauth
 
         </nav>

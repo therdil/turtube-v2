@@ -10,6 +10,8 @@
             <img
                 src="{{ $video->thumbnail_url }}"
                 alt="{{ $video->title }}"
+                loading="lazy"
+                decoding="async"
                 class="thumbnail absolute inset-0 z-10 h-full w-full object-cover opacity-100 transition-all duration-300 group-hover:scale-[1.03]"
             >
         @else
@@ -23,7 +25,7 @@
             <video
                 class="preview-video absolute inset-0 z-10 h-full w-full object-cover opacity-0 transition-opacity duration-300"
                 muted
-                preload="auto"
+                preload="metadata"
                 playsinline
             >
                 <source src="{{ $video->preview_url }}" type="video/mp4">
@@ -41,9 +43,9 @@
         <div class="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
 
         {{-- Duration --}}
-        @if($video->duration)
+        @if($video->formatted_duration)
             <div class="absolute bottom-3 left-3 z-30 rounded-md bg-black/80 px-2 py-1 text-xs font-semibold tracking-wide text-white">
-                {{ $video->duration }}
+                {{ $video->formatted_duration }}
             </div>
         @endif
 
@@ -56,7 +58,7 @@
         @endif
 
         {{-- Watch Progress --}}
-        @if(auth()->check() && $video->progress->first())
+        @if(auth()->check() && $video->relationLoaded('progress') && $video->progress->first())
 
         <div class="watch-progress absolute bottom-1 left-0 z-30 h-1 w-full bg-black/40 transition-opacity duration-200">
 
@@ -82,11 +84,31 @@
             {{ $video->title }}
         </h3>
 
-        <div class="space-y-1">
+        <div class="flex items-start gap-3">
 
-            <p class="text-sm font-medium text-gray-300">
-                {{ $video->display_channel_name }}
-            </p>
+    @if($video->user?->avatar)
+
+        <img
+            src="{{ asset('storage/'.$video->user->avatar) }}"
+            class="h-10 w-10 rounded-full object-cover">
+
+    @else
+
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-600 font-semibold text-white">
+
+            {{ strtoupper(substr($video->display_channel_name,0,1)) }}
+
+        </div>
+
+    @endif
+
+    <div class="min-w-0 flex-1">
+
+        <p class="truncate text-sm font-medium text-gray-300">
+
+            {{ $video->display_channel_name }}
+
+        </p>
 
             @if($video->category)
                 <p class="text-xs font-medium text-red-400">
@@ -101,5 +123,7 @@
         </div>
 
     </div>
+
+</div>
 
 </a>

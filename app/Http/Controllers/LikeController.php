@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Video;
+use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class LikeController extends Controller
 {
+    public function __construct(protected AnalyticsService $analyticsService)
+    {
+    }
+
     /**
      * Kullanıcının beğendiği videolar
      */
@@ -27,6 +32,11 @@ class LikeController extends Controller
      */
     public function toggle(Request $request, Video $video)
     {
+        abort_unless(
+            $video->isVisibleTo(auth()->user()) && $video->isPremiumAccessibleTo(auth()->user()),
+            404
+        );
+
         $existingLike = $video->likes()
             ->where('user_id', auth()->id())
             ->first();
@@ -44,6 +54,8 @@ class LikeController extends Controller
         }
 
         $likesCount = $video->likes()->count();
+
+        $this->analyticsService->syncLikes($video);
 
         // AJAX isteği geldiyse JSON döndür
         if ($request->expectsJson()) {

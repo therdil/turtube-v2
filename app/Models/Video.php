@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\WatchHistory;
 use App\Models\VideoProgress;
+use App\Services\MediaUrl;
 
 class Video extends Model
 {
@@ -17,18 +19,70 @@ class Video extends Model
         'thumbnail',
         'preview',
         'video_path',
+        'video_qualities',
+        'processing_status',
+        'processing_error',
         'channel_name',
         'views',
         'duration',
         'user_id',
         'category_id',
         'status',
+        'license',
+        'tags',
+        'is_short',
+        'is_premium',
+        'is_featured',
+        'age_restriction',
+        'copyright_status',
+        'copyright_note',
     ];
 
     protected $attributes = [
         'views' => 0,
         'status' => 'public',
     ];
+
+    /**
+     * Herkese açık video sorgusu.
+     */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('status', 'public');
+    }
+
+    public function scopeShorts(Builder $query): Builder
+    {
+        return $query->where('is_short', true);
+    }
+
+    /**
+     * Videonun belirtilen kullanıcı tarafından görüntülenip görüntülenemeyeceği.
+     */
+    public function isVisibleTo(?User $user): bool
+    {
+        return in_array($this->status, ['public', 'unlisted'], true)
+            || $this->user_id === $user?->id;
+    }
+
+    public function isPremiumAccessibleTo(?User $user): bool
+    {
+        return ! $this->is_premium
+            || $this->user_id === $user?->id
+            || $user?->hasPremiumAccess();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_short' => 'boolean',
+            'is_premium' => 'boolean',
+            'is_featured' => 'boolean',
+            'age_restriction' => 'integer',
+            'video_qualities' => 'array',
+            'tags' => 'array',
+        ];
+    }
 
     /**
      * Videonun sahibi
@@ -88,11 +142,44 @@ class Video extends Model
     }
 
     /**
+     * Videoya gönderilen moderasyon raporları.
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(VideoReport::class);
+    }
+
+    public function chapters(): HasMany
+    {
+        return $this->hasMany(VideoChapter::class)->orderBy('start_seconds');
+    }
+
+    public function captions(): HasMany
+    {
+        return $this->hasMany(VideoCaption::class);
+    }
+
+    public function favorites(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'video_favorites')->withTimestamps();
+    }
+
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(VideoRating::class);
+    }
+
+    public function viewEvents(): HasMany
+    {
+        return $this->hasMany(VideoViewEvent::class);
+    }
+
+    /**
      * Thumbnail URL
      */
     public function getThumbnailUrlAttribute(): string
     {
-        return asset('storage/' . $this->thumbnail);
+        return MediaUrl::for($this->thumbnail) ?: '';
     }
 
     /**
@@ -104,7 +191,7 @@ class Video extends Model
             return null;
         }
 
-        return asset('storage/' . $this->preview);
+        return MediaUrl::for($this->preview);
     }
 
     /**
@@ -112,14 +199,56 @@ class Video extends Model
      */
     public function getVideoUrlAttribute(): string
     {
-        return asset('storage/' . $this->video_path);
+        return MediaUrl::for($this->video_path) ?: '';
+    }
+
+    /**
+     * Playback sources are ordered from the original upload to generated variants.
+     * A source is only exposed when its file was created successfully.
+     */
+    public function getPlaybackSourcesAttribute(): array
+    {
+        $sources = [];
+
+        foreach ($this->video_qualities ?? [] as $quality) {
+            if (! empty($quality['path']) && ! empty($quality['label'])) {
+                $sources[] = [
+                    'label' => $quality['label'],
+                    'path' => $quality['path'],
+                    'url' => MediaUrl::for($quality['path']),
+                ];
+            }
+        }
+
+        if (empty($sources) && $this->video_path) {
+            $sources[] = [
+                'label' => 'Orijinal',
+                'path' => $this->video_path,
+                'url' => $this->video_url,
+            ];
+        }
+
+        return $sources;
+    }
+
+    public function getFormattedDurationAttribute(): ?string
+    {
+        $seconds = (int) $this->duration;
+
+        if ($seconds <= 0) {
+            return null;
+        }
+
+        return $seconds >= 3600
+            ? gmdate('H:i:s', $seconds)
+            : gmdate('i:s', $seconds);
     }
 
     /**
      * Kanal adını kullanıcıdan al
      */
-        public function getDisplayChannelNameAttribute(): string
+    public function getDisplayChannelNameAttribute(): string
     {
-        return $this->user->channel_name ?: $this->user->name;
+        return $this->user?->channel_name ?: $this->user?->name ?: $this->channel_name;
     }
 }

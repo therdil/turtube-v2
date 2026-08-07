@@ -202,6 +202,16 @@ const initialiseSidebarControls = () => {
 
 initialiseWhenReady(initialiseSidebarControls);
 
+window.turtubeShell = () => ({
+    searchOpen: false,
+
+    init() {
+        window.requestAnimationFrame(() => {
+            document.documentElement.classList.add('theme-transitions');
+        });
+    },
+});
+
 window.Alpine = Alpine;
 
 Alpine.data('turtubeShell', () => ({

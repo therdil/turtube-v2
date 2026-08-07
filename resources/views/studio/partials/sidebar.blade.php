@@ -1,4 +1,4 @@
-<aside class="w-64 bg-[#161616] border-r border-gray-800 flex flex-col">
+<aside class="hidden w-64 shrink-0 flex-col border-r border-gray-800 bg-white dark:bg-[#161616] lg:flex">
 
     <div class="p-6 border-b border-gray-800">
 

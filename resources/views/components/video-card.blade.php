@@ -1,23 +1,24 @@
 <a
     href="{{ route('videos.show', $video) }}"
-    class="video-card group block overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/80 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-gray-700 hover:shadow-2xl"
+    class="video-card turtube-card group block overflow-hidden bg-gray-900/80 backdrop-blur-sm"
 >
 
     <div class="relative aspect-video overflow-hidden bg-black">
 
         {{-- Thumbnail --}}
+        <div data-thumbnail-fallback class="absolute inset-0 z-10 flex {{ $video->thumbnail ? 'hidden' : '' }} items-center justify-center bg-gradient-to-br from-red-700 via-red-900 to-gray-950 text-4xl text-white/80">
+            <x-heroicon-o-play class="h-12 w-12" />
+        </div>
+
         @if ($video->thumbnail)
             <img
                 src="{{ $video->thumbnail_url }}"
                 alt="{{ $video->title }}"
                 loading="lazy"
                 decoding="async"
+                onerror="this.classList.add('hidden'); this.parentElement.querySelector('[data-thumbnail-fallback]')?.classList.remove('hidden');"
                 class="thumbnail absolute inset-0 z-10 h-full w-full object-cover opacity-100 transition-all duration-300 group-hover:scale-[1.03]"
             >
-        @else
-            <div class="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-red-700 via-red-900 to-gray-950 text-4xl text-white/80">
-                <x-heroicon-o-play class="h-12 w-12" />
-            </div>
         @endif
 
         {{-- Preview --}}
@@ -78,7 +79,7 @@
 
     </div>
 
-    <div class="space-y-3 p-4">
+    <div class="space-y-3 p-4 sm:p-4.5">
 
         <h3 class="line-clamp-2 min-h-[52px] text-base font-semibold leading-6 text-white transition-colors duration-300 group-hover:text-red-400">
             {{ $video->title }}

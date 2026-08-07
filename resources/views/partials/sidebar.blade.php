@@ -1,13 +1,13 @@
 <aside
-    :class="{ '!translate-x-0': sidebarOpen }"
-    :style="window.innerWidth < 1024 ? `transform: translateX(${sidebarOpen ? '0' : '-100%'})` : ''"
-    class="fixed inset-y-0 left-0 z-[60] w-64 shrink-0 -translate-x-full border-r border-gray-800 bg-gray-950 shadow-2xl transition-transform duration-200 lg:sticky lg:top-16 lg:z-0 lg:h-[calc(100vh-4rem)] lg:translate-x-0 lg:shadow-none">
+    id="primary-sidebar"
+    aria-label="Ana navigasyon"
+    class="turtube-sidebar fixed inset-y-0 left-0 z-[60] h-[100dvh] w-64 shrink-0 -translate-x-full overflow-hidden border-r border-gray-800 bg-gray-950 shadow-2xl transition-[transform,width] duration-300 ease-out lg:sticky lg:top-16 lg:z-0 lg:h-[calc(100dvh-4rem)] lg:translate-x-0 lg:shadow-none">
 
-    <div class="flex h-full flex-col p-4">
+    <div class="turtube-sidebar-scroll flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
 
         <div class="mb-5 flex items-center justify-between lg:hidden">
             <span class="text-sm font-semibold uppercase tracking-[0.18em] text-gray-500">Menü</span>
-            <button type="button" @click="sidebarOpen = false" aria-label="Menüyü kapat" class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white">
+            <button type="button" data-sidebar-close aria-label="Menüyü kapat" class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white">
                 <x-heroicon-o-x-mark class="h-5 w-5"/>
             </button>
         </div>
@@ -240,7 +240,7 @@
         </nav>
 
         {{-- Alt Bilgi --}}
-        <div class="mt-auto rounded-xl border border-gray-800 bg-gray-900 p-4">
+        <div class="turtube-sidebar-footer mt-auto rounded-xl border border-gray-800 bg-gray-900 p-4">
 
             <p class="text-sm font-semibold text-white">
                 TurTube

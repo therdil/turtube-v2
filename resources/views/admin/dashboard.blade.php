@@ -20,7 +20,7 @@
 @endphp
 
 <div class="mx-auto max-w-7xl space-y-6 sm:space-y-8">
-    <section class="overflow-hidden rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900 to-red-950/30 p-5 shadow-2xl shadow-black/20 sm:p-7">
+    <section data-theme-hero class="overflow-hidden rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900 to-red-950/30 p-5 shadow-2xl shadow-black/20 sm:p-7">
         <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div class="max-w-2xl">
                 <div class="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-red-300">

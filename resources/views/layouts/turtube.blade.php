@@ -42,6 +42,8 @@
 
     @stack('head')
 
+    <x-theme-preload />
+
     @vite([
         'resources/css/app.css',
         'resources/js/app.js'
@@ -51,8 +53,9 @@
 
 <body
     class="bg-gray-950 text-gray-100 antialiased min-h-screen"
-    x-data="{ sidebarOpen: false, searchOpen: false }"
-    @keydown.escape.window="sidebarOpen = false; searchOpen = false">
+    data-theme-endpoint="{{ auth()->check() && \Illuminate\Support\Facades\Route::has('profile.theme') ? url('/profile/theme') : '' }}"
+    x-data="turtubeShell()"
+    @keydown.escape.window="searchOpen = false">
 
     <div class="flex min-h-screen flex-col">
 
@@ -68,11 +71,8 @@
         @endif
 
         <div
-            x-cloak
-            x-show="sidebarOpen"
-            x-transition.opacity
-            @click="sidebarOpen = false"
-            class="fixed inset-0 z-40 bg-black/70 lg:hidden"></div>
+            data-sidebar-overlay
+            class="fixed inset-0 z-40 hidden bg-black/70 lg:hidden"></div>
 
         <div
             x-cloak
@@ -91,14 +91,14 @@
             </form>
         </div>
 
-        <div class="flex flex-1">
+        <div class="flex min-h-0 flex-1">
 
             {{-- Sidebar --}}
             @include('partials.sidebar')
 
             {{-- İçerik --}}
             <main
-                class="min-w-0 flex-1 overflow-y-auto p-6 lg:p-8">
+                class="turtube-page-content min-w-0 flex-1 p-5 sm:p-6 lg:p-8">
 
                 @include('partials.flash')
 

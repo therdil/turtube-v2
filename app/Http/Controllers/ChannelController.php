@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Models\User;
-use App\Services\ContentCache;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -20,11 +19,7 @@ class ChannelController extends Controller
         $tab = $validated['tab'] ?? 'videos';
         $query = trim($validated['q'] ?? '');
         $isOwner = $request->user()?->is($user) ?? false;
-        $page = max(1, (int) $request->input('page', 1));
-
-        $data = ! $request->user()
-            ? ContentCache::remember('channel', implode(':', [$user->id, $tab, sha1(mb_strtolower($query)), $page]), 180, fn () => $this->data($user, $tab, $query, false))
-            : $this->data($user, $tab, $query, $isOwner, $request->user()?->id);
+        $data = $this->data($user, $tab, $query, $isOwner, $request->user()?->id);
 
         return view('channels.show', $data);
     }

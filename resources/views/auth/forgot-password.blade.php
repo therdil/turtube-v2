@@ -1,25 +1,21 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
+    <a href="{{ route('login') }}" class="mb-6 inline-flex items-center gap-1.5 rounded-lg text-sm font-semibold text-zinc-500 transition hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+        Girise don
+    </a>
+    <div class="mb-7">
+        <p class="text-sm font-semibold text-red-500">Sifre yenileme</p>
+        <h2 class="mt-2 text-3xl font-bold tracking-tight text-zinc-950 dark:text-white">E-postani kontrol et</h2>
+        <p class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Hesabina bagli e-posta adresini gir; sana guvenli bir sifre yenileme baglantisi gonderecegiz.</p>
     </div>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <x-auth-session-status class="mb-5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300" :status="session('status')" />
 
-    <form method="POST" action="{{ route('password.email') }}">
+    <form method="POST" action="{{ route('password.email') }}" class="space-y-5">
         @csrf
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
-        </div>
+        <x-auth.input label="E-posta adresi" name="email" type="email" :value="old('email')" required autofocus autocomplete="username" placeholder="ornek@eposta.com" />
+        <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-950/25 transition duration-200 hover:-translate-y-0.5 hover:bg-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950">
+            Yenileme baglantisi gonder
+        </button>
     </form>
 </x-guest-layout>

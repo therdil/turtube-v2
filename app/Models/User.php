@@ -34,6 +34,7 @@ use App\Models\WatchHistory;
     'premium_until',
     'banned_at',
     'ban_reason',
+    'theme_preference',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable

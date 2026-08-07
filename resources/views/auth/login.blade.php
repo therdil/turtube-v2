@@ -1,47 +1,35 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <div class="mb-7">
+        <p class="text-sm font-semibold text-red-500">Tekrar hos geldin</p>
+        <h2 class="mt-2 text-3xl font-bold tracking-tight text-zinc-950 dark:text-white">Hesabina gir</h2>
+        <p class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Takip ettigin iceriklere ve yaratici araclaryna kaldigin yerden devam et.</p>
+    </div>
 
-    <form method="POST" action="{{ route('login') }}">
+    <x-auth-session-status class="mb-5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300" :status="session('status')" />
+
+    <form method="POST" action="{{ route('login') }}" class="space-y-5">
         @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+        <x-auth.input label="E-posta adresi" name="email" type="email" :value="old('email')" required autofocus autocomplete="username" placeholder="ornek@eposta.com" />
+        <x-auth.input label="Sifre" name="password" type="password" required autocomplete="current-password" placeholder="Sifreni gir" />
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+        <div class="flex items-center justify-between gap-4">
+            <label for="remember" class="group flex cursor-pointer items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-400">
+                <input id="remember" name="remember" type="checkbox" class="h-4 w-4 rounded border-zinc-300 bg-white text-red-600 transition focus:ring-2 focus:ring-red-500/40 focus:ring-offset-0 dark:border-zinc-600 dark:bg-zinc-900">
+                <span class="transition group-hover:text-zinc-950 dark:group-hover:text-white">Beni hatirla</span>
             </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
+                <a href="{{ route('password.request') }}" class="rounded-md text-sm font-semibold text-red-600 transition hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:text-red-400 dark:focus-visible:ring-offset-zinc-950">Sifremi unuttum</a>
             @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
         </div>
+
+        <button type="submit" class="group flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-950/25 transition duration-200 hover:-translate-y-0.5 hover:bg-red-500 hover:shadow-red-950/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950">
+            Giris yap
+            <svg class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </button>
     </form>
+
+    @if (Route::has('register'))
+        <p class="mt-7 text-center text-sm text-zinc-600 dark:text-zinc-400">TurTube'da yeni misin? <a href="{{ route('register') }}" class="font-bold text-red-600 transition hover:text-red-500 dark:text-red-400">Hesap olustur</a></p>
+    @endif
 </x-guest-layout>

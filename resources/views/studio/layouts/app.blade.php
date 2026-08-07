@@ -11,21 +11,27 @@
 
     <title>@yield('title', 'TurTube Creator Studio')</title>
 
+    <x-theme-preload />
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
 
-<body class="bg-[#0f0f0f] text-white overflow-hidden">
+<body
+    class="overflow-hidden bg-gray-50 text-gray-900 dark:bg-[#0f0f0f] dark:text-white"
+    data-studio-shell
+    data-theme-endpoint="{{ auth()->check() && \Illuminate\Support\Facades\Route::has('profile.theme') ? url('/profile/theme') : '' }}"
+    x-data="turtubeShell()">
 
-<div class="flex h-screen">
+<div class="flex min-h-[100dvh]">
 
     @include('studio.partials.sidebar')
 
-    <div class="flex flex-1 flex-col">
+    <div class="flex min-w-0 flex-1 flex-col">
 
         @include('studio.partials.topbar')
 
-        <main class="flex-1 overflow-y-auto p-8">
+        <main class="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
 
             @yield('content')
 

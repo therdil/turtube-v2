@@ -6,7 +6,7 @@
 
 <div class="mx-auto max-w-[1800px] space-y-8">
 
-    <section class="relative overflow-hidden rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-950 to-red-950/30 p-6 shadow-2xl sm:p-9">
+    <section data-theme-hero class="relative overflow-hidden rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-950 to-red-950/30 p-6 shadow-2xl sm:p-9">
         <div class="relative max-w-2xl"><p class="text-sm font-semibold uppercase tracking-[0.2em] text-red-400">TurTube keşfet</p><h1 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Her izleyişte sana daha yakın videolar.</h1><p class="mt-3 text-zinc-300">İzleme geçmişin, ilgi alanların ve popüler içerikler tek akışta buluşur.</p><div class="mt-6 flex flex-wrap gap-3"><a href="{{ route('trending') }}" class="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-500">Trendleri keşfet</a><a href="{{ route('shorts.index') }}" class="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-semibold text-zinc-100 transition hover:border-red-500">Shorts izle</a></div></div>
         <div class="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-red-600/20 blur-3xl"></div>
     </section>

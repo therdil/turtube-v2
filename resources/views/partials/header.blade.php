@@ -1,4 +1,4 @@
-<header class="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/95 backdrop-blur">
+<header class="turtube-header sticky top-0 z-50 border-b border-gray-800 bg-gray-950/95 backdrop-blur">
 
     <div class="flex h-16 items-center justify-between gap-2 px-3 sm:px-6">
 
@@ -7,9 +7,11 @@
 
             <button
                 type="button"
-                @click="sidebarOpen = true"
+                data-sidebar-toggle
+                aria-expanded="false"
                 aria-label="Menüyü aç"
-                class="shrink-0 rounded-xl p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white">
+                aria-controls="primary-sidebar"
+                class="turtube-control turtube-focus shrink-0 p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
 
                 <x-heroicon-o-bars-3 class="h-6 w-6"/>
 
@@ -83,6 +85,8 @@
 
         {{-- Sağ --}}
         <div class="flex shrink-0 items-center gap-1.5 sm:gap-3">
+
+            <x-theme-selector />
 
             <button
                 type="button"

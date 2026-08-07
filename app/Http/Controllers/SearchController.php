@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\SearchHistory;
 use App\Models\Video;
-use App\Services\ContentCache;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Schema;
@@ -25,15 +24,12 @@ class SearchController extends Controller
             'sort' => ['nullable', 'in:relevance,newest,views'],
         ]);
         $query = trim($validated['q'] ?? '');
-        $page = max(1, (int) $request->input('page', 1));
         $filters = collect($validated)->except('q')->filter(fn ($value) => $value !== null && $value !== 'any')->all();
         $hasSearchHistory = Schema::hasTable('search_histories');
 
-        $videos = $query !== '' && auth()->guest()
-            ? ContentCache::remember('search', sha1(mb_strtolower($query).':'.json_encode($filters)).':page:'.$page, 90, fn () => $this->query($query, $filters)->paginate(16))
-            : $this->query($query, $filters)->paginate(16);
+        $videos = $this->query($query, $filters)->paginate(16);
 
-        if ($query !== '' && $page === 1 && $hasSearchHistory) {
+        if ($query !== '' && (int) $request->input('page', 1) === 1 && $hasSearchHistory) {
             $this->recordSearch($query, $request);
         }
 

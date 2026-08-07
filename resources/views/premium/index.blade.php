@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="mx-auto max-w-6xl">
-    <section class="overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-950 via-gray-900 to-gray-950 p-8 sm:p-12">
+    <section data-theme-hero class="overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-950 via-gray-900 to-gray-950 p-8 sm:p-12">
         <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">TurTube Premium</p>
         <h1 class="mt-3 max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-5xl">Daha özel içeriklere eriş.</h1>
         <p class="mt-5 max-w-2xl text-lg leading-8 text-gray-300">Premium içerikleri reklamsız deneyim, öncelikli özellikler ve üreticileri destekleme altyapısıyla izle.</p>

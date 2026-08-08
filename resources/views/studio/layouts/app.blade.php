@@ -18,7 +18,7 @@
 </head>
 
 <body
-    class="overflow-hidden bg-gray-50 text-gray-900 dark:bg-[#0f0f0f] dark:text-white"
+    class="min-h-[100dvh] overflow-x-hidden bg-gray-50 text-gray-900 dark:bg-[#0f0f0f] dark:text-white"
     data-studio-shell
     data-theme-endpoint="{{ auth()->check() && \Illuminate\Support\Facades\Route::has('profile.theme') ? url('/profile/theme') : '' }}"
     x-data="turtubeShell()">
@@ -31,7 +31,7 @@
 
         @include('studio.partials.topbar')
 
-        <main class="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main class="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
 
             @yield('content')
 

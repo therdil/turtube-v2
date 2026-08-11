@@ -8,6 +8,7 @@ if (uploadForm) {
     const progressBar = uploadForm.querySelector('[data-upload-progress-bar]');
     const progressPercent = uploadForm.querySelector('[data-upload-percent]');
     const progressStatus = uploadForm.querySelector('[data-upload-status]');
+    const uploadNotice = uploadForm.querySelector('[data-upload-notice]');
     const submitButton = uploadForm.querySelector('button[type="submit"]');
     const tagContainer = uploadForm.querySelector('[data-tag-container]');
     const tagInput = uploadForm.querySelector('[data-tag-input]');
@@ -19,6 +20,21 @@ if (uploadForm) {
         if (progressBar) progressBar.style.width = `${percent}%`;
         if (progressPercent) progressPercent.textContent = `${percent}%`;
         if (progressStatus) progressStatus.textContent = status;
+    };
+
+    const showNotice = (message, type = 'success') => {
+        if (!uploadNotice) return;
+
+        uploadNotice.hidden = false;
+        uploadNotice.textContent = message;
+        uploadNotice.className = type === 'success'
+            ? 'mt-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-200'
+            : 'mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm font-medium text-red-200';
+    };
+
+    const resetSubmit = () => {
+        submitButton?.removeAttribute('disabled');
+        submitButton?.classList.remove('cursor-not-allowed', 'opacity-70');
     };
 
     const showFile = () => {
@@ -105,6 +121,7 @@ if (uploadForm) {
         if (!fileInput?.files?.length) return;
 
         event.preventDefault();
+        uploadNotice?.setAttribute('hidden', 'hidden');
         submitButton?.setAttribute('disabled', 'disabled');
         submitButton?.classList.add('cursor-not-allowed', 'opacity-70');
         setProgress(0, 'Video yükleniyor');
@@ -112,23 +129,38 @@ if (uploadForm) {
         const request = new XMLHttpRequest();
         request.open('POST', uploadForm.action);
         request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        request.setRequestHeader('Accept', 'application/json');
         request.upload.addEventListener('progress', (progressEvent) => {
             if (!progressEvent.lengthComputable) return;
             setProgress(Math.round((progressEvent.loaded / progressEvent.total) * 100), 'Video yükleniyor');
         });
         request.addEventListener('load', () => {
-            if (request.status >= 200 && request.status < 400) {
-                setProgress(100, 'Yükleme tamamlandı, medya işleniyor');
-                window.location.assign(request.responseURL || uploadForm.action);
+            let payload = null;
+
+            try {
+                payload = JSON.parse(request.responseText);
+            } catch {
+                // Non-JSON responses are handled with a safe generic message below.
+            }
+
+            if (request.status >= 200 && request.status < 400 && payload?.success) {
+                setProgress(100, 'Yükleme tamamlandı');
+                showNotice(payload.message, 'success');
+                window.setTimeout(() => window.location.assign(payload.redirect_url || uploadForm.action), 1800);
                 return;
             }
 
-            window.location.assign(request.responseURL || uploadForm.action);
+            const validationMessages = payload?.errors
+                ? Object.values(payload.errors).flat().join(' ')
+                : null;
+            showNotice(validationMessages || payload?.message || 'Video yüklenemedi. Lütfen bilgileri kontrol edip tekrar deneyin.', 'error');
+            setProgress(0, 'Yükleme tamamlanamadı');
+            resetSubmit();
         });
         request.addEventListener('error', () => {
             setProgress(0, 'Yükleme tamamlanamadı. Bağlantını kontrol edip tekrar dene.');
-            submitButton?.removeAttribute('disabled');
-            submitButton?.classList.remove('cursor-not-allowed', 'opacity-70');
+            showNotice('Video yüklenemedi. Bağlantını kontrol edip tekrar dene.', 'error');
+            resetSubmit();
         });
         request.send(new FormData(uploadForm));
     });

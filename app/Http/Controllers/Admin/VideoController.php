@@ -23,7 +23,7 @@ class VideoController extends Controller
     public function index(Request $request): View
     {
         $videos = Video::query()
-            ->with('user')
+            ->with(['user', 'category'])
             ->when($request->filled('q'), fn ($query) => $query->where('title', 'like', '%'.$request->string('q').'%'))
             ->latest()
             ->paginate(25)

@@ -172,6 +172,7 @@
                             <div class="mt-3 h-2 overflow-hidden rounded-full bg-gray-800"><div data-upload-progress-bar class="h-full w-0 rounded-full bg-gradient-to-r from-red-600 to-red-400 transition-[width] duration-150"></div></div>
                             <p class="mt-2 text-xs text-gray-500">Yükleme tamamlandıktan sonra kalite ve önizleme işlemleri arka planda devam eder.</p>
                         </div>
+                        <div data-upload-notice hidden class="mt-4 rounded-xl border p-4 text-sm font-medium" role="status" aria-live="assertive"></div>
 
                     </div>
 
@@ -186,6 +187,7 @@
 
                     <div class="space-y-3 rounded-xl border border-gray-700 bg-gray-800/60 p-4">
                         <label class="flex cursor-pointer items-center gap-3 text-sm text-gray-200">
+                            <input type="hidden" name="is_short" value="0">
                             <input type="checkbox" name="is_short" value="1" @checked(old('is_short')) class="rounded border-gray-600 bg-gray-900 text-red-600 focus:ring-red-500">
                             <span><strong>Shorts olarak yayınla</strong><br><span class="text-gray-400">Dikey ve kısa videolar Shorts akışında öne çıkar.</span></span>
                         </label>

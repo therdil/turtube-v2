@@ -104,9 +104,23 @@ class VideoController extends Controller
         ProcessUploadedVideo::dispatch($video);
         ContentCache::flush();
 
+        $message = $video->is_short
+            ? 'Shorts başarıyla yüklendi. Video işleniyor ve kısa süre içinde Shorts akışında yayınlanacak.'
+            : 'Video başarıyla yüklendi. Medya işlemleri arka planda devam ediyor.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'redirect_url' => route('videos.mine'),
+                'processing_status' => $video->processing_status,
+                'is_short' => $video->is_short,
+            ], 201);
+        }
+
         return redirect()
             ->route('videos.mine')
-            ->with('success', 'Video yüklendi. Medya işlemleri arka planda devam ediyor.');
+            ->with('success', $message);
     }
 
     public function show(Request $request, Video $video)

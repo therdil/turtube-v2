@@ -39,7 +39,7 @@ class CategoryController extends Controller
             'slug' => $this->uniqueSlug($validated['name']),
         ]);
 
-        Cache::forget('navigation-categories-v3');
+        Cache::forget('navigation-categories-v4');
         ContentCache::flush();
         $this->activityLogger->record($request->user(), 'category.created', 'Kategori olusturuldu.', $category);
 
@@ -57,7 +57,7 @@ class CategoryController extends Controller
             'slug' => $this->uniqueSlug($validated['name'], $category->id),
         ]);
 
-        Cache::forget('navigation-categories-v3');
+        Cache::forget('navigation-categories-v4');
         ContentCache::flush();
         $this->activityLogger->record($request->user(), 'category.updated', 'Kategori guncellendi.', $category);
 
@@ -71,7 +71,7 @@ class CategoryController extends Controller
         }
 
         $category->delete();
-        Cache::forget('navigation-categories-v3');
+        Cache::forget('navigation-categories-v4');
         ContentCache::flush();
         $this->activityLogger->record(auth()->user(), 'category.deleted', 'Kategori silindi.', null, ['category_id' => $category->id, 'name' => $category->name]);
 

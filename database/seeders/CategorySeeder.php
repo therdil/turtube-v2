@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class CategorySeeder extends Seeder
 {
@@ -14,30 +14,30 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            'Eğitim',
-            'Teknoloji',
-            'Oyun',
-            'Müzik',
-            'Spor',
-            'Haber',
-            'Eğlence',
-            'Film',
-            'Belgesel',
-            'Bilim',
-            'Yaşam',
-            'Diğer',
+            'belgesel' => 'Belgesel',
+            'bilim' => 'Bilim',
+            'diger' => 'Diğer',
+            'egitim' => 'Eğitim',
+            'eglence' => 'Eğlence',
+            'film' => 'Film',
+            'haber' => 'Haber',
+            'muzik' => 'Müzik',
+            'oyun' => 'Oyun',
+            'spor' => 'Spor',
+            'teknoloji' => 'Teknoloji',
+            'yasam' => 'Yaşam',
         ];
 
-        foreach ($categories as $category) {
-
+        foreach ($categories as $slug => $name) {
             Category::firstOrCreate(
-                ['slug' => Str::slug($category)],
+                ['slug' => $slug],
                 [
-                    'name' => $category,
-                    'slug' => Str::slug($category),
+                    'name' => $name,
+                    'slug' => $slug,
                 ]
             );
-
         }
+
+        Cache::forget('navigation-categories-v4');
     }
 }

@@ -17,6 +17,7 @@ use App\Services\VideoProcessingService;
 use App\Services\VideoRecommendationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class VideoController extends Controller
 {
@@ -34,7 +35,13 @@ class VideoController extends Controller
     {
         $this->authorize('create', Video::class);
 
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::query()->orderBy('name')->get(['id', 'name']);
+
+        if ($categories->isEmpty()) {
+            Log::warning('Video upload category catalog is empty.', [
+                'user_id' => auth()->id(),
+            ]);
+        }
 
         $uploadDefaults = [
             'description' => auth()->user()->default_video_description,

@@ -66,14 +66,14 @@ class AppServiceProvider extends ServiceProvider
             ->by($request->ip()));
 
         View::composer('*', function ($view) {
-            $categories = Cache::remember('navigation-categories-v3', now()->addHour(), fn () =>
+            $categories = Cache::remember('navigation-categories-v4', now()->addHour(), fn () =>
                 Category::query()->orderBy('name')->get()
             );
 
             if (! $categories instanceof Collection || $categories->contains(fn ($category) => ! $category instanceof Category)) {
-                Cache::forget('navigation-categories-v3');
+                Cache::forget('navigation-categories-v4');
                 $categories = Category::query()->orderBy('name')->get();
-                Cache::put('navigation-categories-v3', $categories, now()->addHour());
+                Cache::put('navigation-categories-v4', $categories, now()->addHour());
             }
 
             $view->with('categories', $categories);

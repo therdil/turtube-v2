@@ -96,17 +96,17 @@
                                 Kategori Seçin
                             </option>
 
-                            @foreach($categories as $category)
-
+                            @forelse($categories as $category)
                                 <option
                                     value="{{ $category->id }}"
                                     @selected(old('category_id') == $category->id)>
-
                                     {{ $category->name }}
-
                                 </option>
-
-                            @endforeach
+                            @empty
+                                <option value="" disabled>
+                                    Kategori listesi şu anda yüklenemedi.
+                                </option>
+                            @endforelse
 
                         </select>
 

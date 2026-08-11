@@ -92,12 +92,33 @@ Accept: application/json
 | --- | --- | --- |
 | `POST /auth/login` | `email`, `password`, isteğe bağlı `device_name` | Token ve hesap özeti döner. |
 | `POST /auth/register` | `name`, `email`, `password`, `password_confirmation`, isteğe bağlı `device_name` | Hesap oluşturur, token döner. |
+| `POST /auth/forgot-password` | `email` | Kimlik doğrulama gerektirmez; genel bir yanıt döner ve varsa reset bağlantısını e-posta ile gönderir. |
 | `GET /auth/me` | Bearer token | Oturum sahibinin hesap özeti döner. |
 | `POST /auth/logout` | Bearer token | Sadece mevcut cihaz tokenını iptal eder; `204 No Content`. |
 
 `/auth/me` ve giriş/kayıt yanıtlarındaki kullanıcı nesnesi hesap sahibine ait
 e-posta ve premium erişim bilgisini içerir. Public kanal yanıtları e-posta,
 parola, yönetici, ban veya token bilgilerini hiçbir zaman içermez.
+
+### Şifre sıfırlama
+
+`POST /api/v1/auth/forgot-password` yalnızca reset e-postası gönderme isteğini başlatır:
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+Başarılı yanıt her durumda aynıdır; kullanıcı hesabının varlığı ifşa edilmez:
+
+```json
+{
+  "message": "Bu e-posta adresi kayıtlıysa, şifre sıfırlama bağlantısı gönderilmiştir."
+}
+```
+
+Endpoint kimlik doğrulama gerektirmez ve e-posta/IP bazında dakikada beş istekle sınırlıdır. Reset tokenı ve bağlantısı yalnızca Laravel tarafından e-postayla üretilir; sıfırlama işlemi mevcut web ekranında tamamlanır.
 
 ## Hatalar ve sınırlar
 

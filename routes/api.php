@@ -17,6 +17,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     Route::get('/channels/{user}', [ChannelController::class, 'show'])->name('channels.show');
 
     Route::prefix('auth')->name('auth.')->group(function (): void {
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset')->name('forgot-password');
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login')->name('login');
         Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:registration')->name('register');
 

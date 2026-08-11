@@ -188,7 +188,8 @@
                     <div class="space-y-3 rounded-xl border border-gray-700 bg-gray-800/60 p-4">
                         <label class="flex cursor-pointer items-center gap-3 text-sm text-gray-200">
                             <input type="hidden" name="is_short" value="0">
-                            <input type="checkbox" name="is_short" value="1" @checked(old('is_short')) class="rounded border-gray-600 bg-gray-900 text-red-600 focus:ring-red-500">
+                            <input type="hidden" name="content_type" value="{{ old('is_short') ? 'short' : 'video' }}" data-content-type-input>
+                            <input type="checkbox" name="is_short" value="1" @checked(old('is_short')) data-short-toggle class="rounded border-gray-600 bg-gray-900 text-red-600 focus:ring-red-500">
                             <span><strong>Shorts olarak yayınla</strong><br><span class="text-gray-400">Dikey ve kısa videolar Shorts akışında öne çıkar.</span></span>
                         </label>
 

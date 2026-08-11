@@ -6,6 +6,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreVideoRequest extends FormRequest
 {
+    /**
+     * Convert the upload form's checkbox values to stable booleans before
+     * validation. The companion content type also protects Shorts uploads
+     * when a browser has an older cached JavaScript bundle.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'is_short' => $this->boolean('is_short') || $this->input('content_type') === 'short',
+            'is_premium' => $this->boolean('is_premium'),
+        ]);
+    }
+
     public function authorize(): bool
     {
         return auth()->check();
@@ -53,6 +66,7 @@ class StoreVideoRequest extends FormRequest
 
             'is_short' => ['nullable', 'boolean'],
             'is_premium' => ['nullable', 'boolean'],
+            'content_type' => ['nullable', 'in:video,short'],
 
         ];
     }

@@ -56,6 +56,8 @@ class VideoController extends Controller
     {
         $this->authorize('create', Video::class);
 
+        $isShort = $request->boolean('is_short') || $request->input('content_type') === 'short';
+
         $videoPath = $request->file('video')->store('videos', config('video.disk'));
         $tags = collect($request->input('tags', []))
             ->map(fn ($tag) => trim((string) $tag))
@@ -70,7 +72,7 @@ class VideoController extends Controller
             if ($videoProcessing->isAvailable()) {
                 $thumbnailPath = $videoProcessing->generateThumbnail(
                     $videoPath,
-                    $request->boolean('is_short'),
+                    $isShort,
                 );
             }
         } catch (\Throwable $exception) {
@@ -90,7 +92,7 @@ class VideoController extends Controller
                 'status'       => $request->status,
                 'license'      => $request->license,
                 'tags'         => $tags,
-                'is_short'     => $request->boolean('is_short'),
+                'is_short'     => $isShort,
                 'is_premium'   => $request->boolean('is_premium'),
                 'views'        => 0,
                 'duration'     => 0,
@@ -105,21 +107,25 @@ class VideoController extends Controller
         ContentCache::flush();
 
         $message = $video->is_short
-            ? 'Shorts başarıyla yüklendi. Video işleniyor ve kısa süre içinde Shorts akışında yayınlanacak.'
+            ? 'Shorts başarıyla yüklendi. Video işlenirken de Shorts sayfasında görüntülenebilir.'
             : 'Video başarıyla yüklendi. Medya işlemleri arka planda devam ediyor.';
+
+        $redirectUrl = $video->is_short
+            ? route('shorts.show', $video)
+            : route('videos.mine');
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'redirect_url' => route('videos.mine'),
+                'redirect_url' => $redirectUrl,
                 'processing_status' => $video->processing_status,
                 'is_short' => $video->is_short,
             ], 201);
         }
 
         return redirect()
-            ->route('videos.mine')
+            ->to($redirectUrl)
             ->with('success', $message);
     }
 

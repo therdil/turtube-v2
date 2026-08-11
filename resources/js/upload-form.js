@@ -10,6 +10,8 @@ if (uploadForm) {
     const progressStatus = uploadForm.querySelector('[data-upload-status]');
     const uploadNotice = uploadForm.querySelector('[data-upload-notice]');
     const submitButton = uploadForm.querySelector('button[type="submit"]');
+    const shortToggle = uploadForm.querySelector('[data-short-toggle]');
+    const contentTypeInput = uploadForm.querySelector('[data-content-type-input]');
     const tagContainer = uploadForm.querySelector('[data-tag-container]');
     const tagInput = uploadForm.querySelector('[data-tag-input]');
     const tagList = uploadForm.querySelector('[data-tag-list]');
@@ -43,6 +45,12 @@ if (uploadForm) {
 
         fileName.textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(1)} MB`;
         fileName.classList.remove('hidden');
+    };
+
+    const syncContentType = () => {
+        if (contentTypeInput) {
+            contentTypeInput.value = shortToggle?.checked ? 'short' : 'video';
+        }
     };
 
     const renderTags = () => {
@@ -86,6 +94,8 @@ if (uploadForm) {
     } catch {}
 
     fileInput?.addEventListener('change', showFile);
+    shortToggle?.addEventListener('change', syncContentType);
+    syncContentType();
     dropzone?.addEventListener('dragover', (event) => {
         event.preventDefault();
         dropzone.classList.add('border-red-500', 'bg-red-500/5');
@@ -162,6 +172,10 @@ if (uploadForm) {
             showNotice('Video yüklenemedi. Bağlantını kontrol edip tekrar dene.', 'error');
             resetSubmit();
         });
-        request.send(new FormData(uploadForm));
+        const formData = new FormData(uploadForm);
+        formData.set('is_short', shortToggle?.checked ? '1' : '0');
+        formData.set('content_type', shortToggle?.checked ? 'short' : 'video');
+
+        request.send(formData);
     });
 }

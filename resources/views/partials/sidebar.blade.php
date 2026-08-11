@@ -1,9 +1,9 @@
 <aside
     id="primary-sidebar"
     aria-label="Ana navigasyon"
-    class="turtube-sidebar fixed inset-y-0 left-0 z-[60] h-[100dvh] w-64 shrink-0 -translate-x-full overflow-hidden border-r border-gray-800 bg-gray-950 shadow-2xl transition-[transform,width] duration-300 ease-out lg:sticky lg:top-16 lg:z-0 lg:h-[calc(100dvh-4rem)] lg:translate-x-0 lg:shadow-none">
+    class="turtube-sidebar fixed inset-y-0 left-0 z-[60] h-[100dvh] w-[min(20rem,85vw)] max-w-[85vw] shrink-0 -translate-x-full overflow-x-hidden border-r border-gray-800 bg-gray-950 shadow-2xl transition-[transform,width] duration-300 ease-out lg:sticky lg:top-16 lg:z-0 lg:h-[calc(100dvh-4rem)] lg:w-64 lg:max-w-none lg:translate-x-0 lg:shadow-none">
 
-    <div class="turtube-sidebar-scroll flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+    <div class="turtube-sidebar-scroll flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-4">
 
         <div class="mb-5 flex items-center justify-between lg:hidden">
             <span class="text-sm font-semibold uppercase tracking-[0.18em] text-gray-500">Menü</span>
@@ -241,6 +241,11 @@
 
         {{-- Alt Bilgi --}}
         <div class="turtube-sidebar-footer mt-auto rounded-xl border border-gray-800 bg-gray-900 p-4">
+
+            <div class="mb-4 lg:hidden">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Görünüm</p>
+                <x-theme-selector id="sidebar-theme-menu-options" placement="up" />
+            </div>
 
             <p class="text-sm font-semibold text-white">
                 TurTube

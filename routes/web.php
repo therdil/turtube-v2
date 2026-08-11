@@ -140,6 +140,10 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:comments')
         ->name('comments.update');
 
+    Route::post('/comments/{comment}/reaction', [CommentController::class, 'toggleReaction'])
+        ->middleware('throttle:interactions')
+        ->name('comments.reaction');
+
     Route::patch('/videos/{video}/comments/{comment}/pin', [CommentController::class, 'togglePin'])
         ->middleware('throttle:interactions')
         ->name('comments.pin');
@@ -157,6 +161,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/videos/{video}/like', [LikeController::class, 'toggle'])
         ->middleware('throttle:interactions')
         ->name('videos.like');
+
+    Route::post('/videos/{video}/dislike', [LikeController::class, 'toggleDislike'])
+        ->middleware('throttle:interactions')
+        ->name('videos.dislike');
 
     Route::post('/videos/{video}/favorite', [VideoFavoriteController::class, 'toggle'])
         ->middleware('throttle:interactions')
@@ -288,7 +296,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return redirect()->route('home');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 /*

@@ -54,6 +54,28 @@ class CommentController extends Controller
             $video->user->notify(new NewCommentNotification($comment));
         }
 
+        if ($request->expectsJson()) {
+            $comment->load('user');
+
+            return response()->json([
+                'success' => true,
+                'comment' => [
+                    'id' => $comment->id,
+                    'author' => $comment->user->name,
+                    'body' => $comment->comment,
+                    'created_at' => $comment->created_at->diffForHumans(),
+                    'initial' => strtoupper(substr($comment->user->name, 0, 1)),
+                    'avatar_url' => $comment->user->avatar
+                        ? asset('storage/'.$comment->user->avatar)
+                        : null,
+                    'channel_url' => route('channels.show', $comment->user),
+                    'is_verified' => (bool) $comment->user->is_verified,
+                    'reaction_url' => route('comments.reaction', $comment),
+                ],
+                'comments_count' => $video->comments()->count(),
+            ], 201);
+        }
+
         return redirect()
             ->route('videos.show', $video)
             ->with('success', 'Yorum başarıyla eklendi.');
@@ -88,6 +110,41 @@ class CommentController extends Controller
         $comment->update(['comment' => $validated['comment']]);
 
         return back()->with('success', 'Yorum güncellendi.');
+    }
+
+    public function toggleReaction(Request $request, Comment $comment)
+    {
+        $validated = $request->validate([
+            'reaction' => ['required', 'in:like,dislike'],
+        ]);
+
+        $video = $comment->video;
+        abort_unless(
+            $video->isVisibleTo($request->user()) && $video->isPremiumAccessibleTo($request->user()),
+            404
+        );
+
+        $existingReaction = $comment->reactions()
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if ($existingReaction?->reaction === $validated['reaction']) {
+            $existingReaction->delete();
+            $activeReaction = null;
+        } else {
+            $comment->reactions()->updateOrCreate(
+                ['user_id' => $request->user()->id],
+                ['reaction' => $validated['reaction']],
+            );
+            $activeReaction = $validated['reaction'];
+        }
+
+        return response()->json([
+            'success' => true,
+            'reaction' => $activeReaction,
+            'likes_count' => $comment->likes()->count(),
+            'dislikes_count' => $comment->dislikes()->count(),
+        ]);
     }
 
     public function togglePin(Video $video, Comment $comment)

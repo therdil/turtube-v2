@@ -37,18 +37,19 @@ class LikeController extends Controller
             404
         );
 
-        $existingLike = $video->likes()
+        $existingReaction = $video->reactions()
             ->where('user_id', auth()->id())
             ->first();
 
-        if ($existingLike) {
-            $existingLike->delete();
+        if ($existingReaction?->reaction === 'like') {
+            $existingReaction->delete();
 
             $liked = false;
         } else {
-            $video->likes()->create([
-                'user_id' => auth()->id(),
-            ]);
+            $video->reactions()->updateOrCreate(
+                ['user_id' => auth()->id()],
+                ['reaction' => 'like'],
+            );
 
             $liked = true;
         }
@@ -63,6 +64,7 @@ class LikeController extends Controller
                 'success' => true,
                 'liked' => $liked,
                 'likes_count' => $likesCount,
+                'dislikes_count' => $video->dislikes()->count(),
             ]);
         }
 
@@ -73,5 +75,37 @@ class LikeController extends Controller
                 'success',
                 $liked ? 'Video beğenildi.' : 'Beğeni kaldırıldı.'
             );
+    }
+
+    public function toggleDislike(Request $request, Video $video)
+    {
+        abort_unless(
+            $video->isVisibleTo($request->user()) && $video->isPremiumAccessibleTo($request->user()),
+            404
+        );
+
+        $reaction = $video->reactions()
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if ($reaction?->reaction === 'dislike') {
+            $reaction->delete();
+            $disliked = false;
+        } else {
+            $video->reactions()->updateOrCreate(
+                ['user_id' => $request->user()->id],
+                ['reaction' => 'dislike'],
+            );
+            $disliked = true;
+        }
+
+        $this->analyticsService->syncLikes($video);
+
+        return response()->json([
+            'success' => true,
+            'disliked' => $disliked,
+            'likes_count' => $video->likes()->count(),
+            'dislikes_count' => $video->dislikes()->count(),
+        ]);
     }
 }

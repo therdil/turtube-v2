@@ -89,6 +89,7 @@
 
                         <select
                             name="category_id"
+                            required
                             class="w-full rounded-xl bg-gray-800 border border-gray-700 focus:border-red-500 focus:ring-red-500 text-white">
 
                             <option value="">
@@ -162,7 +163,7 @@
                             <input id="video-upload-input" type="file" name="video" accept="video/mp4" class="sr-only" required data-upload-input>
                             <x-heroicon-o-arrow-up-tray class="mx-auto h-9 w-9 text-zinc-500 transition group-hover:text-red-400" />
                             <label for="video-upload-input" class="mt-3 block cursor-pointer font-semibold text-white">Videoyu seç veya buraya sürükle</label>
-                            <p class="mt-1 text-sm text-gray-400">MP4 · En fazla 50 MB</p>
+                            <p class="mt-1 text-sm text-gray-400">MP4 · En fazla {{ number_format(config('video.max_upload_kb') / 1024, 0) }} MB</p>
                             <p data-upload-file class="mt-3 hidden text-sm font-medium text-emerald-300"></p>
                         </div>
 
@@ -174,24 +175,13 @@
 
                     </div>
 
-                    <div class="grid gap-6 md:grid-cols-2">
-                        <div>
-                            <label for="thumbnail-upload-input" class="mb-3 block font-semibold">Özel thumbnail</label>
-                            <label for="thumbnail-upload-input" class="group flex aspect-video cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-gray-700 bg-gray-950/50 p-4 text-center transition hover:border-red-500 hover:bg-red-500/5">
-                                <img data-thumbnail-preview class="hidden h-full w-full rounded-xl object-cover" alt="Thumbnail önizlemesi">
-                                <span data-thumbnail-placeholder class="text-sm text-gray-400">JPG, PNG veya WEBP seç</span>
-                            </label>
-                            <input id="thumbnail-upload-input" type="file" name="thumbnail" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="sr-only" data-thumbnail-input>
-                            <p class="mt-2 text-xs text-gray-500">En fazla 5 MB. Seçmezsen otomatik thumbnail oluşturulur.</p>
-                        </div>
-                        <div>
+                    <div>
                             <label for="video-tag-input" class="mb-3 block font-semibold">Etiketler</label>
                             <div data-tag-container data-initial-tags='@json(old('tags', []))' class="min-h-28 rounded-2xl border border-gray-700 bg-gray-950/50 p-3 focus-within:border-red-500">
                                 <div data-tag-list class="flex flex-wrap gap-2"></div>
                                 <input id="video-tag-input" data-tag-input type="text" maxlength="50" placeholder="Etiket yaz, Enter'a bas" class="mt-2 w-full border-0 bg-transparent px-1 py-2 text-sm text-white placeholder:text-gray-500 focus:ring-0">
                             </div>
                             <p class="mt-2 text-xs text-gray-500">En fazla 12 etiket. Arama ve keşfette kullanılabilir.</p>
-                        </div>
                     </div>
 
                     <div class="space-y-3 rounded-xl border border-gray-700 bg-gray-800/60 p-4">

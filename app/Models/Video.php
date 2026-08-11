@@ -122,7 +122,17 @@ class Video extends Model
      */
     public function likes(): HasMany
     {
+        return $this->hasMany(VideoLike::class)->where('reaction', 'like');
+    }
+
+    public function reactions(): HasMany
+    {
         return $this->hasMany(VideoLike::class);
+    }
+
+    public function dislikes(): HasMany
+    {
+        return $this->hasMany(VideoLike::class)->where('reaction', 'dislike');
     }
 
     /**

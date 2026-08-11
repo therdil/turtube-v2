@@ -42,6 +42,21 @@ class Comment extends Model
         return $this->hasMany(self::class, 'parent_id')->oldest();
     }
 
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(CommentReaction::class);
+    }
+
+    public function likes(): HasMany
+    {
+        return $this->reactions()->where('reaction', 'like');
+    }
+
+    public function dislikes(): HasMany
+    {
+        return $this->reactions()->where('reaction', 'dislike');
+    }
+
     protected function casts(): array
     {
         return ['is_pinned' => 'boolean'];

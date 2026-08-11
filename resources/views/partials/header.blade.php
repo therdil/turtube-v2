@@ -86,7 +86,9 @@
         {{-- Sağ --}}
         <div class="flex shrink-0 items-center gap-1.5 sm:gap-3">
 
-            <x-theme-selector />
+            <div class="hidden sm:block">
+                <x-theme-selector />
+            </div>
 
             <button
                 type="button"
@@ -120,11 +122,11 @@
 
                 <a
                     href="{{ route('videos.create') }}"
-                    class="flex items-center gap-2 rounded-xl border border-gray-700 px-4 py-2 text-sm transition hover:bg-gray-800">
+                    class="flex items-center gap-2 rounded-xl border border-gray-700 px-2 py-2 text-sm transition hover:bg-gray-800 sm:px-4">
 
                     <x-heroicon-o-plus class="h-5 w-5"/>
 
-                    <span>Yükle</span>
+                    <span class="hidden sm:inline">Yükle</span>
 
                 </a>
 

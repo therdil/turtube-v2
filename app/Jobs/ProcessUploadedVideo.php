@@ -11,6 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class ProcessUploadedVideo implements ShouldQueue
@@ -37,15 +38,54 @@ class ProcessUploadedVideo implements ShouldQueue
             'processing_error' => null,
         ]);
 
-        $processedMedia = [
-            'preview' => $videoProcessing->generatePreview($video->video_path),
-            'video_qualities' => $videoProcessing->generateQualities($video->video_path),
-            'duration' => $videoProcessing->getDuration($video->video_path),
-            'processing_status' => 'ready',
-        ];
+        $processedMedia = ['processing_status' => 'ready'];
+
+        if (! $videoProcessing->isAvailable()) {
+            $video->update($processedMedia);
+            ContentCache::flush();
+
+            return;
+        }
 
         if (! $video->thumbnail) {
-            $processedMedia['thumbnail'] = $videoProcessing->generateThumbnail($video->video_path);
+            try {
+                $processedMedia['thumbnail'] = $videoProcessing->generateThumbnail(
+                    $video->video_path,
+                    $video->is_short,
+                );
+            } catch (Throwable $exception) {
+                Log::warning('Video thumbnail oluşturulamadı.', [
+                    'video_id' => $video->id,
+                    'exception' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        try {
+            $processedMedia['preview'] = $videoProcessing->generatePreview($video->video_path);
+        } catch (Throwable $exception) {
+            Log::warning('Video önizlemesi oluşturulamadı.', [
+                'video_id' => $video->id,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
+
+        try {
+            $processedMedia['video_qualities'] = $videoProcessing->generateQualities($video->video_path);
+        } catch (Throwable $exception) {
+            Log::warning('Video kalite sürümleri oluşturulamadı.', [
+                'video_id' => $video->id,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
+
+        try {
+            $processedMedia['duration'] = $videoProcessing->getDuration($video->video_path);
+        } catch (Throwable $exception) {
+            Log::warning('Video süresi okunamadı.', [
+                'video_id' => $video->id,
+                'exception' => $exception->getMessage(),
+            ]);
         }
 
         $video->update($processedMedia);

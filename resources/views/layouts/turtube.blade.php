@@ -52,7 +52,7 @@
 </head>
 
 <body
-    class="bg-gray-950 text-gray-100 antialiased min-h-screen"
+    class="min-h-screen overflow-x-hidden bg-gray-950 text-gray-100 antialiased"
     data-theme-endpoint="{{ auth()->check() && \Illuminate\Support\Facades\Route::has('profile.theme') ? url('/profile/theme') : '' }}"
     x-data="turtubeShell()"
     @keydown.escape.window="searchOpen = false">

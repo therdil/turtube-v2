@@ -5,25 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class VideoLike extends Model
+class CommentReaction extends Model
 {
     protected $fillable = [
-        'video_id',
+        'comment_id',
         'user_id',
         'reaction',
     ];
 
-    /**
-     * Beğenilen video
-     */
-    public function video(): BelongsTo
+    public function comment(): BelongsTo
     {
-        return $this->belongsTo(Video::class);
+        return $this->belongsTo(Comment::class);
     }
 
-    /**
-     * Beğeniyi yapan kullanıcı
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

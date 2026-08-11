@@ -2,37 +2,60 @@
 
 namespace App\Services;
 
-use FFMpeg\Coordinate\TimeCode;
-use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use Illuminate\Support\Str;
+use Symfony\Component\Process\Process;
 
 class VideoProcessingService
 {
-    protected FFMpeg $ffmpeg;
-    protected FFProbe $ffprobe;
+    protected ?FFProbe $ffprobe = null;
+    protected ?bool $available = null;
 
-    public function __construct()
+    public function isAvailable(): bool
     {
-        $this->ffmpeg = FFMpeg::create([
-            'ffmpeg.binaries' => config('video.ffmpeg_binary'),
-            'ffprobe.binaries' => config('video.ffprobe_binary'),
-            'timeout' => 3600,
-        ]);
-        $this->ffprobe = FFProbe::create([
-            'ffmpeg.binaries' => config('video.ffmpeg_binary'),
-            'ffprobe.binaries' => config('video.ffprobe_binary'),
-            'timeout' => 3600,
-        ]);
+        return $this->available ??= $this->binaryIsAvailable(config('video.ffmpeg_binary'))
+            && $this->binaryIsAvailable(config('video.ffprobe_binary'));
     }
 
-    public function generateThumbnail(string $videoPath): string
+    public function generateThumbnail(string $videoPath, bool $isShort = false): string
     {
-        return MediaStorage::withLocalPath($videoPath, function (string $source) {
+        $this->ensureAvailable();
+
+        return MediaStorage::withLocalPath($videoPath, function (string $source) use ($isShort) {
             $temporary = MediaStorage::temporaryPath('jpg');
             $relative = 'thumbnails/'.Str::uuid().'.jpg';
 
-            $this->ffmpeg->open($source)->frame(TimeCode::fromSeconds(1))->save($temporary);
+            $duration = (float) $this->ffprobe()->format($source)->get('duration');
+            $captureAt = $duration > 0
+                ? min(max(0.5, $duration * 0.1), max(0.5, $duration - 0.25))
+                : 1.0;
+            $filter = $isShort
+                ? 'scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280'
+                : 'scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720';
+            $process = new Process([
+                config('video.ffmpeg_binary'),
+                '-y',
+                '-ss',
+                (string) $captureAt,
+                '-i',
+                $source,
+                '-frames:v',
+                '1',
+                '-vf',
+                $filter,
+                '-q:v',
+                '3',
+                $temporary,
+            ]);
+            $process->setTimeout(30);
+            $process->run();
+
+            if (! $process->isSuccessful() || ! is_file($temporary)) {
+                @unlink($temporary);
+
+                throw new \RuntimeException('Video thumbnail oluşturulamadı.');
+            }
+
             MediaStorage::putFile($relative, $temporary);
 
             return $relative;
@@ -101,12 +124,47 @@ class VideoProcessingService
 
     public function getDuration(string $videoPath): int
     {
-        return MediaStorage::withLocalPath($videoPath, fn (string $source) => (int) $this->ffprobe->format($source)->get('duration'));
+        $this->ensureAvailable();
+
+        return MediaStorage::withLocalPath($videoPath, fn (string $source) => (int) $this->ffprobe()->format($source)->get('duration'));
     }
 
     private function getVideoHeight(string $videoPath): int
     {
-        return MediaStorage::withLocalPath($videoPath, fn (string $source) => (int) $this->ffprobe->streams($source)->videos()->first()->get('height'));
+        $this->ensureAvailable();
+
+        return MediaStorage::withLocalPath($videoPath, fn (string $source) => (int) $this->ffprobe()->streams($source)->videos()->first()->get('height'));
+    }
+
+    private function ensureAvailable(): void
+    {
+        if (! $this->isAvailable()) {
+            throw new \RuntimeException('FFmpeg veya FFprobe kullanılamıyor.');
+        }
+    }
+
+    private function ffprobe(): FFProbe
+    {
+        $this->ensureAvailable();
+
+        return $this->ffprobe ??= FFProbe::create([
+            'ffmpeg.binaries' => config('video.ffmpeg_binary'),
+            'ffprobe.binaries' => config('video.ffprobe_binary'),
+            'timeout' => 3600,
+        ]);
+    }
+
+    private function binaryIsAvailable(string $binary): bool
+    {
+        try {
+            $process = new Process([$binary, '-version']);
+            $process->setTimeout(5);
+            $process->run();
+
+            return $process->isSuccessful();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     private function run(string $command, bool $throwOnFailure = true): int

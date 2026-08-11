@@ -9,9 +9,6 @@ if (uploadForm) {
     const progressPercent = uploadForm.querySelector('[data-upload-percent]');
     const progressStatus = uploadForm.querySelector('[data-upload-status]');
     const submitButton = uploadForm.querySelector('button[type="submit"]');
-    const thumbnailInput = uploadForm.querySelector('[data-thumbnail-input]');
-    const thumbnailPreview = uploadForm.querySelector('[data-thumbnail-preview]');
-    const thumbnailPlaceholder = uploadForm.querySelector('[data-thumbnail-placeholder]');
     const tagContainer = uploadForm.querySelector('[data-tag-container]');
     const tagInput = uploadForm.querySelector('[data-tag-input]');
     const tagList = uploadForm.querySelector('[data-tag-list]');
@@ -102,19 +99,6 @@ if (uploadForm) {
     tagInput?.addEventListener('blur', () => {
         addTag(tagInput.value);
         tagInput.value = '';
-    });
-
-    thumbnailInput?.addEventListener('change', () => {
-        const file = thumbnailInput.files?.[0];
-        if (!file || !thumbnailPreview) return;
-
-        const reader = new FileReader();
-        reader.addEventListener('load', () => {
-            thumbnailPreview.src = String(reader.result);
-            thumbnailPreview.classList.remove('hidden');
-            thumbnailPlaceholder?.classList.add('hidden');
-        });
-        reader.readAsDataURL(file);
     });
 
     uploadForm.addEventListener('submit', (event) => {

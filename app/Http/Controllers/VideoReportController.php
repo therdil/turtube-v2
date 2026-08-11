@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreVideoReportRequest;
 use App\Models\Video;
 use App\Models\VideoReport;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 
 class VideoReportController extends Controller
 {
-    public function store(StoreVideoReportRequest $request, Video $video): RedirectResponse
+    public function store(StoreVideoReportRequest $request, Video $video): JsonResponse|RedirectResponse
     {
         abort_unless($video->isVisibleTo($request->user()), 404);
         abort_unless($video->isPremiumAccessibleTo($request->user()), 404);
@@ -28,6 +29,13 @@ class VideoReportController extends Controller
                 'reviewed_at' => null,
             ]
         );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Raporunuz alındı.',
+            ]);
+        }
 
         return back()->with('success', 'Raporunuz incelenmek üzere yönetim ekibine iletildi.');
     }

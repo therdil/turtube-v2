@@ -1,9 +1,14 @@
+@props([
+    'id' => 'theme-menu-options',
+    'placement' => 'bottom',
+])
+
 <div class="relative" data-theme-menu>
     <button
         type="button"
         data-theme-menu-toggle
         aria-expanded="false"
-        aria-controls="theme-menu-options"
+        aria-controls="{{ $id }}"
         aria-haspopup="menu"
         aria-label="Tema tercihini değiştir"
         class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-700 bg-gray-900 text-gray-300 transition hover:border-gray-600 hover:bg-gray-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
@@ -13,10 +18,10 @@
     </button>
 
     <div
-        id="theme-menu-options"
+        id="{{ $id }}"
         data-theme-menu-panel
         hidden
-        class="absolute right-0 z-[70] mt-3 w-52 overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 p-2 shadow-2xl shadow-black/30"
+        class="absolute right-0 z-[70] w-52 overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 p-2 shadow-2xl shadow-black/30 {{ $placement === 'up' ? 'bottom-full mb-3' : 'mt-3' }}"
         role="menu"
         aria-label="Tema seçenekleri">
         @foreach ([
@@ -28,7 +33,7 @@
                 type="button"
                 data-theme-option="{{ $value }}"
                 aria-checked="false"
-                class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                class="flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                 role="menuitemradio">
                 <span><span class="block text-sm font-semibold text-white">{{ $label }}</span><span class="mt-0.5 block text-xs text-gray-500">{{ $description }}</span></span>
                 <svg class="h-4 w-4 shrink-0 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg>

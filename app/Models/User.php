@@ -72,6 +72,7 @@ class User extends Authenticatable
     public function likedVideos(): BelongsToMany
     {
         return $this->belongsToMany(Video::class, 'video_likes')
+            ->wherePivot('reaction', 'like')
             ->withTimestamps();
     }
 

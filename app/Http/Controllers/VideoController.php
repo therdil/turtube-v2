@@ -13,6 +13,7 @@ use App\Models\WatchHistory;
 use App\Services\AnalyticsService;
 use App\Services\VideoDeletionService;
 use App\Services\ContentCache;
+use App\Services\VideoProcessingService;
 use App\Services\VideoRecommendationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,14 +45,11 @@ class VideoController extends Controller
         return view('videos.create', compact('categories', 'uploadDefaults'));
     }
 
-    public function store(StoreVideoRequest $request)
+    public function store(StoreVideoRequest $request, VideoProcessingService $videoProcessing)
     {
         $this->authorize('create', Video::class);
 
         $videoPath = $request->file('video')->store('videos', config('video.disk'));
-        $thumbnailPath = $request->hasFile('thumbnail')
-            ? $request->file('thumbnail')->store('thumbnails', config('video.disk'))
-            : null;
         $tags = collect($request->input('tags', []))
             ->map(fn ($tag) => trim((string) $tag))
             ->filter()
@@ -59,30 +57,49 @@ class VideoController extends Controller
             ->values()
             ->all();
 
-        $video = Video::create([
-            'title'        => $request->title,
-            'description'  => $request->description,
-            'video_path'   => $videoPath,
-            'thumbnail'    => $thumbnailPath,
-            'processing_status' => 'pending',
-            'channel_name' => auth()->user()->name,
-            'user_id'      => auth()->id(),
-            'category_id'  => $request->category_id,
-            'status'       => $request->status,
-            'license'      => $request->license,
-            'tags'         => $tags,
-            'is_short'     => $request->boolean('is_short'),
-            'is_premium'   => $request->boolean('is_premium'),
-            'views'        => 0,
-            'duration'     => 0,
-        ]);
+        $thumbnailPath = null;
+
+        try {
+            if ($videoProcessing->isAvailable()) {
+                $thumbnailPath = $videoProcessing->generateThumbnail(
+                    $videoPath,
+                    $request->boolean('is_short'),
+                );
+            }
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
+        try {
+            $video = Video::create([
+                'title'        => $request->title,
+                'description'  => $request->description,
+                'video_path'   => $videoPath,
+                'thumbnail'    => $thumbnailPath,
+                'processing_status' => 'pending',
+                'channel_name' => auth()->user()->name,
+                'user_id'      => auth()->id(),
+                'category_id'  => $request->category_id,
+                'status'       => $request->status,
+                'license'      => $request->license,
+                'tags'         => $tags,
+                'is_short'     => $request->boolean('is_short'),
+                'is_premium'   => $request->boolean('is_premium'),
+                'views'        => 0,
+                'duration'     => 0,
+            ]);
+        } catch (\Throwable $exception) {
+            Storage::disk(config('video.disk'))->delete(array_filter([$videoPath, $thumbnailPath]));
+
+            throw $exception;
+        }
 
         ProcessUploadedVideo::dispatch($video);
         ContentCache::flush();
 
         return redirect()
             ->route('videos.mine')
-            ->with('success', 'Video yüklendi ve işlenmek üzere sıraya alındı.');
+            ->with('success', 'Video yüklendi. Medya işlemleri arka planda devam ediyor.');
     }
 
     public function show(Request $request, Video $video)

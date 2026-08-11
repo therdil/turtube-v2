@@ -32,12 +32,14 @@ class SubscriptionController extends Controller
 
             $subscribed = false;
         } else {
-            Subscription::create([
+            $subscription = Subscription::firstOrCreate([
                 'subscriber_id' => auth()->id(),
                 'channel_id' => $channel->id,
             ]);
 
-            $channel->notify(new NewSubscriberNotification(auth()->user()));
+            if ($subscription->wasRecentlyCreated) {
+                $channel->notify(new NewSubscriberNotification(auth()->user()));
+            }
 
             $subscribed = true;
         }

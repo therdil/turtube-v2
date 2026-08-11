@@ -65,6 +65,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('search', fn (Request $request) => Limit::perMinute(30)
             ->by($request->ip()));
 
+        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)
+            ->by((string) ($request->user('sanctum')?->id ?? $request->ip())));
+
         View::composer('*', function ($view) {
             $categories = Cache::remember('navigation-categories-v4', now()->addHour(), fn () =>
                 Category::query()->orderBy('name')->get()

@@ -25,6 +25,12 @@ class EnsureSiteIsAvailable
         $settings = SiteSetting::current();
 
         if ($settings->maintenance_mode) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Platform şu anda bakımda. Lütfen daha sonra tekrar deneyin.',
+                ], 503);
+            }
+
             return response()->view('errors.maintenance', ['settings' => $settings], 503);
         }
 

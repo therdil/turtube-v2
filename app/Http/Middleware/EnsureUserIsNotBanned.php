@@ -11,7 +11,19 @@ class EnsureUserIsNotBanned
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->banned_at) {
+        $user = $request->is('api/*')
+            ? $request->user('sanctum')
+            : $request->user();
+
+        if ($user?->banned_at) {
+            if ($request->is('api/*')) {
+                $user->currentAccessToken()?->delete();
+
+                return response()->json([
+                    'message' => 'Hesabınız platform kuralları nedeniyle askıya alındı.',
+                ], 403);
+            }
+
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="color-scheme" content="dark light">
     <title>{{ config('app.name', 'TurTube') }} · Hesap</title>
+    <x-brand.favicon />
     <x-theme-preload />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

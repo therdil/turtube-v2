@@ -19,6 +19,8 @@
 
     </title>
 
+    <x-brand.favicon />
+
     <meta name="description" content="@yield('meta_description', 'TurTube ile videoları keşfet, paylaş ve sevdiğin kanalları takip et.')">
     @hasSection('meta_keywords')
         <meta name="keywords" content="@yield('meta_keywords')">

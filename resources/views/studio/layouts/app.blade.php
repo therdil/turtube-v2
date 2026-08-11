@@ -10,6 +10,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'TurTube Creator Studio')</title>
+    <x-brand.favicon />
 
     <x-theme-preload />
 

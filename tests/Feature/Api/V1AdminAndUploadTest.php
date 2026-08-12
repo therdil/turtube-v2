@@ -73,6 +73,21 @@ class V1AdminAndUploadTest extends TestCase
         $this->assertFalse($target->fresh()->is_moderator);
     }
 
+    public function test_admin_can_read_server_authoritative_dashboard_metrics(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $owner = User::factory()->create();
+        $category = $this->makeCategory('Dashboard');
+        Video::factory()->for($owner)->for($category)->create(['views' => 12, 'is_short' => false]);
+        Video::factory()->for($owner)->for($category)->create(['views' => 5, 'is_short' => true]);
+
+        $this->actingAs($admin, 'sanctum')->getJson('/api/v1/admin/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.videos', 1)
+            ->assertJsonPath('data.shorts', 1)
+            ->assertJsonPath('data.views', 17);
+    }
+
     public function test_guest_cannot_upload_video(): void
     {
         $this->postJson('/api/v1/videos')->assertUnauthorized();

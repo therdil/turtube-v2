@@ -2,12 +2,15 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\ChannelController;
 use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\PlaylistController;
 use App\Http\Controllers\Api\V1\Moderation\VideoReportController as ModerationVideoReportController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\ShortController;
+use App\Http\Controllers\Api\V1\StudioAnalyticsController;
 use App\Http\Controllers\Api\V1\VideoController;
 use App\Http\Controllers\Api\V1\UploadController;
 use Illuminate\Support\Facades\Route;
@@ -42,7 +45,19 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::post('/shorts', [UploadController::class, 'storeShort'])->name('shorts.store');
     });
 
+    Route::middleware('auth:sanctum')->group(function (): void {
+        Route::get('/playlists', [PlaylistController::class, 'index'])->name('playlists.index');
+        Route::post('/playlists', [PlaylistController::class, 'store'])->middleware('throttle:interactions')->name('playlists.store');
+        Route::get('/playlists/{playlist}', [PlaylistController::class, 'show'])->name('playlists.show');
+        Route::patch('/playlists/{playlist}', [PlaylistController::class, 'update'])->middleware('throttle:interactions')->name('playlists.update');
+        Route::delete('/playlists/{playlist}', [PlaylistController::class, 'destroy'])->middleware('throttle:interactions')->name('playlists.destroy');
+        Route::post('/playlists/{playlist}/videos', [PlaylistController::class, 'addVideo'])->middleware('throttle:interactions')->name('playlists.videos.store');
+        Route::delete('/playlists/{playlist}/videos/{video}', [PlaylistController::class, 'removeVideo'])->middleware('throttle:interactions')->name('playlists.videos.destroy');
+        Route::get('/studio/analytics', StudioAnalyticsController::class)->name('studio.analytics');
+    });
+
     Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->name('admin.')->group(function (): void {
+        Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     });

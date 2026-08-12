@@ -6,17 +6,15 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureUserIsAdmin
+class EnsureUserCanModerate
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Web routes retain the legacy session guard while mobile API routes
-        // explicitly use Sanctum. Both authorize the existing is_admin flag.
         $user = $request->is('api/*')
             ? $request->user('sanctum')
             : $request->user('web');
 
-        abort_unless($user?->is_admin, 403);
+        abort_unless($user?->is_admin || $user?->is_moderator, 403);
 
         return $next($request);
     }

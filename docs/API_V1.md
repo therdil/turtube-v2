@@ -147,9 +147,37 @@ tanımlanmalı; wildcard (`*`) kullanılmamalıdır.
 - `thumbnail_url`, `preview_url` ve video URL'leri `null` olabilir. İstemci
   boş durum için güvenli placeholder göstermelidir.
 - `processing_status` tamamlanmadan video dosyası kullanılamayabilir.
-- Video izleme ilerlemesi, beğeni, yorum, abonelik, yükleme ve Studio/Admin
-  işlemleri bu ilk read/auth API kapsamına dahil edilmemiştir; bunlar yetki
-  politikalarıyla ayrı sürümlerde eklenmelidir.
+
+## Roles, admin management, and mobile upload
+
+Authenticated account responses include server-authoritative `role`, `is_admin`,
+and `is_moderator` fields. Client-side role checks are only for navigation;
+Laravel middleware and policies enforce every protected action.
+
+| Method | Path | Auth / authorization | Request | Response |
+| --- | --- | --- | --- | --- |
+| `GET` | `/admin/users` | Bearer token, admin | optional `q`, `limit` | paginated managed users |
+| `PATCH` | `/admin/users/{username}` | Bearer token, admin; never self | `role` (`user|moderator|admin`), `banned`, `ban_reason`, `premium_duration` (`1|3|12|revoke`) | managed user and message |
+| `GET` | `/moderation/reports` | Bearer token, moderator or admin | optional `status`, `limit` | paginated report list |
+| `PATCH` | `/moderation/reports/{id}` | Bearer token, moderator or admin | `status` (`open|reviewing|resolved|dismissed`) | updated report and message |
+| `POST` | `/videos` | Bearer token, authenticated creator | multipart: `video`, `title`, `category_id`, `status` | `201` video resource, `processing_status=pending` |
+| `POST` | `/shorts` | Bearer token, authenticated creator | same multipart fields | `201` video resource, `is_short=true` |
+
+Admin endpoints are inaccessible to moderators. The server forbids role changes
+for the acting admin and prevents removal of the final admin account. Uploaded
+content always belongs to the authenticated account; `user_id` is ignored and
+is not part of this contract.
+
+For both upload endpoints, `video` must be an MP4 file recognized as
+`video/mp4` and is limited by `VIDEO_MAX_UPLOAD_KB` (default 512000 KB).
+Optional `thumbnail` must be JPG, JPEG, PNG, or WebP and no larger than 5120 KB.
+Existing queue processing creates missing thumbnails, previews, duration, and
+quality variants. Errors use JSON: `401` guest, `403` forbidden, `422`
+validation, `429` rate limit, and `500` unexpected failure.
+- Video izleme ilerlemesi, beğeni, yorum, abonelik ve Creator Studio yazma
+  işlemleri henüz bu API sürümünün parçası değildir. Yönetici kullanıcı
+  yönetimi, rapor moderasyonu ve güvenli medya yükleme endpointleri yukarıda
+  belgelenmiştir.
 
 ## Yayına alma notu
 

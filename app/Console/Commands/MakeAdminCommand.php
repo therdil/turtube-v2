@@ -21,7 +21,7 @@ class MakeAdminCommand extends Command
             return self::FAILURE;
         }
 
-        $user->update(['is_admin' => true]);
+        $user->update(['is_admin' => true, 'is_moderator' => false]);
 
         $this->info($user->email.' artık yönetici.');
 

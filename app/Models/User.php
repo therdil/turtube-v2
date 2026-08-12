@@ -31,6 +31,7 @@ use App\Models\WatchHistory;
     'default_video_description',
     'default_video_license',
     'is_admin',
+    'is_moderator',
     'is_verified',
     'premium_until',
     'banned_at',
@@ -165,6 +166,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Returns the server-authoritative platform role for authenticated clients.
+     */
+    public function platformRole(): string
+    {
+        if ($this->is_admin) {
+            return 'admin';
+        }
+
+        return $this->is_moderator ? 'moderator' : 'user';
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -175,6 +188,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'is_moderator' => 'boolean',
             'is_verified' => 'boolean',
             'premium_until' => 'datetime',
             'banned_at' => 'datetime',

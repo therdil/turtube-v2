@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\User;
 use App\Models\Video;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class V1ApiTest extends TestCase
@@ -79,7 +81,10 @@ class V1ApiTest extends TestCase
         $this->withToken($token)
             ->getJson('/api/v1/auth/me')
             ->assertOk()
-            ->assertJsonPath('data.email', $user->email);
+            ->assertJsonPath('data.email', $user->email)
+            ->assertJsonPath('data.role', 'user')
+            ->assertJsonPath('data.is_admin', false)
+            ->assertJsonPath('data.is_moderator', false);
 
         $this->withToken($token)
             ->postJson('/api/v1/auth/logout')
@@ -91,6 +96,47 @@ class V1ApiTest extends TestCase
         $this->withToken($token)
             ->getJson('/api/v1/auth/me')
             ->assertUnauthorized();
+    }
+
+    public function test_authenticated_user_can_read_and_mark_only_their_own_notifications(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $notification = $this->notificationFor($user, false);
+        $otherNotification = $this->notificationFor($otherUser, false);
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/notifications')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $notification->id)
+            ->assertJsonPath('data.0.kind', 'comment')
+            ->assertJsonPath('unread_count', 1);
+
+        $this->actingAs($user, 'sanctum')
+            ->patchJson("/api/v1/notifications/{$notification->id}/read")
+            ->assertOk()
+            ->assertJsonPath('unread_count', 0);
+
+        $this->assertNotNull($notification->fresh()->read_at);
+        $this->assertNull($otherNotification->fresh()->read_at);
+
+        $this->actingAs($user, 'sanctum')
+            ->patchJson("/api/v1/notifications/{$otherNotification->id}/read")
+            ->assertNotFound();
+    }
+
+    public function test_authenticated_user_can_mark_all_notifications_read(): void
+    {
+        $user = User::factory()->create();
+        $this->notificationFor($user, false);
+        $this->notificationFor($user, false);
+
+        $this->actingAs($user, 'sanctum')
+            ->patchJson('/api/v1/notifications/read')
+            ->assertOk()
+            ->assertJsonPath('unread_count', 0);
+
+        $this->assertSame(0, $user->unreadNotifications()->count());
     }
 
     /** @return array{User, Category} */
@@ -121,6 +167,23 @@ class V1ApiTest extends TestCase
             'is_short' => false,
             'is_premium' => false,
             ...$attributes,
+        ]);
+    }
+
+    private function notificationFor(User $user, bool $read): DatabaseNotification
+    {
+        return DatabaseNotification::query()->create([
+            'id' => (string) Str::uuid(),
+            'type' => 'App\\Notifications\\NewCommentNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'data' => [
+                'kind' => 'comment',
+                'title' => 'Yeni yorum',
+                'message' => 'Bir kullanÄ±cÄ± yorum yaptÄ±.',
+                'url' => '/videos/1',
+            ],
+            'read_at' => $read ? now() : null,
         ]);
     }
 }

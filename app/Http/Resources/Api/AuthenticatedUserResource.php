@@ -16,6 +16,9 @@ class AuthenticatedUserResource extends UserResource
             ...parent::toArray($request),
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at?->toISOString(),
+            'role' => $this->platformRole(),
+            'is_admin' => (bool) $this->is_admin,
+            'is_moderator' => (bool) $this->is_moderator,
             'has_premium_access' => $this->hasPremiumAccess(),
         ];
     }

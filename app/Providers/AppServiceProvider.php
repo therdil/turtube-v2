@@ -8,10 +8,12 @@ use App\Models\LiveStream;
 use App\Models\Playlist;
 use App\Models\SiteSetting;
 use App\Models\Video;
+use App\Models\User;
 use App\Policies\CommentPolicy;
 use App\Policies\LiveStreamPolicy;
 use App\Policies\PlaylistPolicy;
 use App\Policies\VideoPolicy;
+use App\Policies\UserPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Video::class, VideoPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Comment::class, CommentPolicy::class);
         Gate::policy(Playlist::class, PlaylistPolicy::class);
         Gate::policy(LiveStream::class, LiveStreamPolicy::class);

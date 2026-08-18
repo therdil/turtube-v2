@@ -37,12 +37,30 @@ use App\Models\WatchHistory;
     'banned_at',
     'ban_reason',
     'theme_preference',
+    'notification_likes_enabled',
+    'notification_comments_enabled',
+    'notification_subscribers_enabled',
+    'notification_system_enabled',
+    'channel_visibility',
+    'subscription_visibility',
+    'playlist_visibility',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
+
+    /** Keep newly-created in-memory users aligned with database preference defaults. */
+    protected $attributes = [
+        'notification_likes_enabled' => true,
+        'notification_comments_enabled' => true,
+        'notification_subscribers_enabled' => true,
+        'notification_system_enabled' => true,
+        'channel_visibility' => 'public',
+        'subscription_visibility' => true,
+        'playlist_visibility' => 'public',
+    ];
 
     /**
      * Route Model Binding için kullanıcı adı kullan.
@@ -74,7 +92,7 @@ class User extends Authenticatable
     public function likedVideos(): BelongsToMany
     {
         return $this->belongsToMany(Video::class, 'video_likes')
-            ->wherePivot('reaction', 'like')
+            ->wherePivot('reaction', '=', 'like')
             ->withTimestamps();
     }
 
@@ -128,6 +146,11 @@ class User extends Authenticatable
     public function videoReports(): HasMany
     {
         return $this->hasMany(VideoReport::class, 'reporter_id');
+    }
+
+    public function feedback(): HasMany
+    {
+        return $this->hasMany(Feedback::class);
     }
 
     /**
@@ -195,6 +218,11 @@ class User extends Authenticatable
             'social_links' => 'array',
             'channel_tags' => 'array',
             'seo_keywords' => 'array',
+            'notification_likes_enabled' => 'boolean',
+            'notification_comments_enabled' => 'boolean',
+            'notification_subscribers_enabled' => 'boolean',
+            'notification_system_enabled' => 'boolean',
+            'subscription_visibility' => 'boolean',
         ];
     }
 }

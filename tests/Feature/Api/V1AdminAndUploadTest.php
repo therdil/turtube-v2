@@ -78,8 +78,8 @@ class V1AdminAndUploadTest extends TestCase
         $admin = User::factory()->create(['is_admin' => true]);
         $owner = User::factory()->create();
         $category = $this->makeCategory('Dashboard');
-        Video::factory()->for($owner)->for($category)->create(['views' => 12, 'is_short' => false]);
-        Video::factory()->for($owner)->for($category)->create(['views' => 5, 'is_short' => true]);
+        $this->makeVideo($owner, $category, 12, false);
+        $this->makeVideo($owner, $category, 5, true);
 
         $this->actingAs($admin, 'sanctum')->getJson('/api/v1/admin/dashboard')
             ->assertOk()
@@ -148,6 +148,20 @@ class V1AdminAndUploadTest extends TestCase
         return Category::query()->create([
             'name' => $name.' API testi '.Str::lower(Str::random(8)),
             'slug' => 'api-test-'.Str::lower(Str::random(16)),
+        ]);
+    }
+
+    private function makeVideo(User $owner, Category $category, int $views, bool $isShort): Video
+    {
+        return Video::query()->create([
+            'title' => 'Dashboard video '.Str::lower(Str::random(8)),
+            'video_path' => 'videos/dashboard-'.Str::lower(Str::random(8)).'.mp4',
+            'channel_name' => $owner->name,
+            'user_id' => $owner->id,
+            'category_id' => $category->id,
+            'status' => 'public',
+            'views' => $views,
+            'is_short' => $isShort,
         ]);
     }
 }

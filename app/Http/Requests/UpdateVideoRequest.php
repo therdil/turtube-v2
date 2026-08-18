@@ -8,7 +8,9 @@ class UpdateVideoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        $video = $this->route('video');
+
+        return $this->user()?->can('update', $video) ?? false;
     }
 
     public function rules(): array

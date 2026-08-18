@@ -14,6 +14,7 @@ class ChannelController extends Controller
 {
     public function show(ShowChannelRequest $request, User $user): JsonResponse
     {
+        abort_if($user->channel_visibility === 'private' && $request->user('sanctum')?->id !== $user->id, 404);
         $filters = $request->validated();
         $content = $filters['content'] ?? 'videos';
 

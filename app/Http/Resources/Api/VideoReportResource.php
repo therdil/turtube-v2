@@ -16,6 +16,7 @@ class VideoReportResource extends JsonResource
             'details' => $this->details,
             'status' => $this->status,
             'video_id' => $this->video_id,
+            'video' => VideoResource::make($this->whenLoaded('video')),
             'reporter' => UserResource::make($this->whenLoaded('reporter')),
             'reviewed_at' => $this->reviewed_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(),

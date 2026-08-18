@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Video;
 use App\Services\AnalyticsService;
+use App\Notifications\VideoLikedNotification;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -52,6 +53,9 @@ class LikeController extends Controller
             );
 
             $liked = true;
+            if ($video->user_id !== auth()->id()) {
+                $video->user->notify(new VideoLikedNotification($video, $request->user()));
+            }
         }
 
         $likesCount = $video->likes()->count();

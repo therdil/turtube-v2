@@ -41,6 +41,7 @@ class VideoResource extends JsonResource
             'published_at' => $this->created_at?->toISOString(),
             'is_short' => (bool) $this->is_short,
             'is_premium' => (bool) $this->is_premium,
+            'status' => $this->status,
             'processing_status' => $this->processing_status,
             'category' => CategoryResource::make($this->whenLoaded('category')),
             'channel' => UserResource::make($this->whenLoaded('user')),

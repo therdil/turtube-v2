@@ -41,11 +41,25 @@ class V1PlaylistAndStudioTest extends TestCase
             ->assertOk()->assertJsonPath('data.stats.videos', 1)->assertJsonPath('data.stats.views', 0);
     }
 
+    public function test_creator_studio_lists_only_the_authenticated_users_videos(): void
+    {
+        [$owner, $video] = $this->userAndVideo();
+        [$other] = $this->userAndVideo();
+
+        $this->actingAs($owner, 'sanctum')->getJson('/api/v1/studio/videos')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $video->id);
+    }
+
     /** @return array{User, Video} */
     private function userAndVideo(): array
     {
         $user = User::factory()->create();
-        $category = Category::query()->create(['name' => 'Test Kategori', 'slug' => 'test-kategori']);
+        $category = Category::query()->create([
+            'name' => "Test Kategori {$user->id}",
+            'slug' => "test-kategori-{$user->id}",
+        ]);
         $video = Video::query()->create([
             'title' => 'Playlist API videosu', 'video_path' => 'videos/test.mp4', 'channel_name' => $user->name,
             'duration' => 60, 'views' => 0, 'user_id' => $user->id, 'category_id' => $category->id,

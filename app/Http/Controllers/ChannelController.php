@@ -11,6 +11,8 @@ class ChannelController extends Controller
 {
     public function show(Request $request, User $user): View
     {
+        abort_if($user->channel_visibility === 'private' && ! $request->user()?->is($user), 404);
+
         $validated = $request->validate([
             'tab' => ['nullable', 'in:videos,shorts,playlists,about'],
             'q' => ['nullable', 'string', 'max:100'],
@@ -39,7 +41,8 @@ class ChannelController extends Controller
             ->withQueryString();
 
         $playlists = $user->playlists()
-            ->when(! $isOwner, fn ($items) => $items->where('is_public', true))
+            ->when(! $isOwner && $user->playlist_visibility === 'private', fn ($items) => $items->whereRaw('1 = 0'))
+            ->when(! $isOwner && $user->playlist_visibility !== 'private', fn ($items) => $items->where('is_public', true))
             ->withCount('videos')
             ->latest()
             ->get();

@@ -79,6 +79,7 @@ test('creator studio bulk action only updates the owners selected videos', funct
     $this->actingAs($owner)
         ->patch(route('studio.videos.bulk-update'), [
             'video_ids' => [$ownersVideo->id, $anotherUsersVideo->id],
+            'action' => 'status',
             'status' => 'private',
         ])
         ->assertSessionHas('success');

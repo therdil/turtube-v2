@@ -26,7 +26,7 @@ class VideoReportController extends Controller
 
         return VideoReportResource::collection(
             VideoReport::query()
-                ->with('reporter')
+                ->with(['reporter', 'video.user'])
                 ->when($validated['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
                 ->latest()
                 ->paginate($validated['limit'] ?? 20)
@@ -47,7 +47,7 @@ class VideoReportController extends Controller
         ]);
         $this->activityLogger->record($request->user('sanctum'), 'report.reviewed', 'İçerik raporu incelendi.', $report, $validated);
 
-        return (new VideoReportResource($report->load('reporter')))
+        return (new VideoReportResource($report->load(['reporter', 'video.user'])))
             ->additional(['message' => 'Rapor durumu güncellendi.'])
             ->response();
     }

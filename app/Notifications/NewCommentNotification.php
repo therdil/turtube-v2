@@ -14,12 +14,13 @@ class NewCommentNotification extends Notification implements ShouldQueue
 
     public function __construct(private readonly Comment $comment)
     {
-        $this->onQueue('notifications');
+        // The production worker already consumes the default queue.
+        $this->onQueue('default');
     }
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return $notifiable->notification_comments_enabled ? ['database'] : [];
     }
 
     public function toArray(object $notifiable): array
@@ -29,6 +30,9 @@ class NewCommentNotification extends Notification implements ShouldQueue
             'title' => 'Yeni yorum',
             'message' => $this->comment->user->name.' videonuza yorum yaptı.',
             'url' => route('videos.show', $this->comment->video),
+            'video_id' => $this->comment->video_id,
+            'comment_id' => $this->comment->id,
+            'channel_id' => $this->comment->user_id,
         ];
     }
 }

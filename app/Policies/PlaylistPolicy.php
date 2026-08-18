@@ -14,7 +14,8 @@ class PlaylistPolicy
 
     public function view(?User $user, Playlist $playlist): bool
     {
-        return $playlist->is_public || $playlist->user_id === $user?->id;
+        return ($playlist->is_public && $playlist->user?->playlist_visibility !== 'private')
+            || $playlist->user_id === $user?->id;
     }
 
     public function update(User $user, Playlist $playlist): bool

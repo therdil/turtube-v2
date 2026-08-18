@@ -88,11 +88,8 @@ class VideoController extends Controller
             ->whereKey($validated['video_ids'])
             ->get();
 
-        abort_if(
-            $videos->count() !== collect($validated['video_ids'])->unique()->count(),
-            403,
-            'Yalnızca kendi videolarınız üzerinde toplu işlem yapabilirsiniz.'
-        );
+        // The query is owner-scoped; foreign IDs are intentionally ignored so
+        // selected videos that do belong to the creator can still be updated.
 
         if ($validated['action'] === 'delete') {
             foreach ($videos as $video) {

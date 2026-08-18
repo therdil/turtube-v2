@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class VideoReport extends Model
 {
     public const REASONS = [
+        'misleading' => 'Misleading content',
+        'scam' => 'Scam',
         'spam' => 'Spam veya yanıltıcı içerik',
         'harassment' => 'Taciz veya nefret söylemi',
         'copyright' => 'Telif hakkı ihlali',

@@ -71,10 +71,12 @@ if (shortsFeed) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const isAuthenticated = shortsFeed.dataset.authenticated === 'true';
     const loginUrl = shortsFeed.dataset.loginUrl || '/login';
-    const isMobileViewport = window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
     let wheelLocked = false;
     let touchStartY = 0;
-    let audioUnlocked = !isMobileViewport;
+    // Shorts should prefer audible playback on every device. Browsers that
+    // prohibit audible autoplay are still handled by the muted fallback in
+    // startVideo(), without preventing the video itself from starting.
+    let audioUnlocked = true;
 
     const setText = (item, selector, value) => {
         item.querySelectorAll(selector).forEach((element) => {
@@ -146,6 +148,15 @@ if (shortsFeed) {
         item.querySelector('[data-short-unmuted-icon]')?.classList.toggle('hidden', muted);
         item.querySelector('[data-short-mute]')?.setAttribute('aria-label', muted ? 'Sesi aç' : 'Sesi kapat');
     };
+
+    const setFullscreenState = (item, fullscreen) => {
+        item.querySelector('[data-short-fullscreen-enter-icon]')?.classList.toggle('hidden', fullscreen);
+        item.querySelector('[data-short-fullscreen-exit-icon]')?.classList.toggle('hidden', !fullscreen);
+        item.querySelector('[data-short-fullscreen]')?.setAttribute('aria-label', fullscreen ? 'Tam ekrandan çık' : 'Tam ekran');
+    };
+
+    const isInteractiveTarget = (target) => target instanceof Element
+        && Boolean(target.closest('[data-short-interactive], button, input, textarea, a, summary'));
 
     const activeIndex = () => {
         const feedBounds = shortsFeed.getBoundingClientRect();
@@ -299,32 +310,39 @@ if (shortsFeed) {
         video.addEventListener('play', () => setPlayingState(item, true));
         video.addEventListener('pause', () => setPlayingState(item, false));
         video.addEventListener('volumechange', () => setMutedState(item, video.muted || video.volume === 0));
+        video.addEventListener('loadedmetadata', () => {
+            if (progress) progress.value = String(video.currentTime > 0 ? (video.currentTime / video.duration) * 100 : 0);
+        });
         video.addEventListener('timeupdate', () => {
             if (progress && Number.isFinite(video.duration) && video.duration > 0) {
                 progress.value = String((video.currentTime / video.duration) * 100);
             }
         });
         video.addEventListener('ended', () => moveTo(index + 1));
-        video.addEventListener('click', () => {
-            if (!audioUnlocked) {
-                enableAudio(item);
-            } else if (video.paused) {
+        const togglePlayback = () => {
+            if (video.paused) {
                 startVideo(item);
             } else {
                 video.pause();
             }
+        };
+
+        stage?.addEventListener('click', (event) => {
+            if (isInteractiveTarget(event.target)) return;
+
+            togglePlayback();
+        });
+
+        item.querySelectorAll('[data-short-interactive], button, input, textarea, a, summary').forEach((control) => {
+            ['pointerdown', 'touchstart', 'touchend'].forEach((eventName) => {
+                control.addEventListener(eventName, (event) => event.stopPropagation(), { passive: true });
+            });
         });
 
         item.querySelector('[data-short-play]')?.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            if (!audioUnlocked) {
-                enableAudio(item);
-            } else if (video.paused) {
-                startVideo(item);
-            } else {
-                video.pause();
-            }
+            togglePlayback();
         });
         item.querySelector('[data-short-mute]')?.addEventListener('click', (event) => {
             event.preventDefault();
@@ -342,11 +360,36 @@ if (shortsFeed) {
         progress?.addEventListener('input', () => {
             if (Number.isFinite(video.duration)) video.currentTime = (Number(progress.value) / 100) * video.duration;
         });
-        item.querySelector('[data-short-fullscreen]')?.addEventListener('click', () => {
-            if (document.fullscreenElement) document.exitFullscreen?.(); else stage?.requestFullscreen?.();
-        });
+        item.querySelector('[data-short-fullscreen]')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
 
-        item.querySelectorAll('[data-short-like]').forEach((button) => button.addEventListener('click', async () => {
+            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+            if (fullscreenElement) {
+                (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+                return;
+            }
+
+            const requestFullscreen = stage?.requestFullscreen || stage?.webkitRequestFullscreen;
+            if (requestFullscreen) {
+                Promise.resolve(requestFullscreen.call(stage)).catch(() => {});
+                return;
+            }
+
+            video.webkitEnterFullscreen?.();
+        });
+        const syncFullscreen = () => {
+            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+            setFullscreenState(item, fullscreenElement === stage || video.webkitDisplayingFullscreen === true);
+        };
+        document.addEventListener('fullscreenchange', syncFullscreen);
+        document.addEventListener('webkitfullscreenchange', syncFullscreen);
+        video.addEventListener('webkitbeginfullscreen', () => setFullscreenState(item, true));
+        video.addEventListener('webkitendfullscreen', () => setFullscreenState(item, false));
+
+        item.querySelectorAll('[data-short-like]').forEach((button) => button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             if (!requireAuth() || button.disabled) return;
             button.disabled = true;
             try {
@@ -362,7 +405,9 @@ if (shortsFeed) {
             }
         }));
 
-        item.querySelectorAll('[data-short-dislike]').forEach((button) => button.addEventListener('click', async () => {
+        item.querySelectorAll('[data-short-dislike]').forEach((button) => button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             if (!requireAuth() || button.disabled) return;
             button.disabled = true;
             try {
@@ -378,7 +423,9 @@ if (shortsFeed) {
             }
         }));
 
-        item.querySelectorAll('[data-short-save]').forEach((button) => button.addEventListener('click', async () => {
+        item.querySelectorAll('[data-short-save]').forEach((button) => button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             if (!requireAuth() || button.disabled) return;
             button.disabled = true;
             try {
@@ -412,7 +459,9 @@ if (shortsFeed) {
             }
         });
 
-        item.querySelectorAll('[data-short-share]').forEach((button) => button.addEventListener('click', async () => {
+        item.querySelectorAll('[data-short-share]').forEach((button) => button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             const shareData = { title: document.title, url: window.location.href };
             try {
                 if (navigator.share) {
@@ -465,7 +514,11 @@ if (shortsFeed) {
             }
         };
 
-        item.querySelectorAll('[data-short-comments-open]').forEach((button) => button.addEventListener('click', openComments));
+        item.querySelectorAll('[data-short-comments-open]').forEach((button) => button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openComments();
+        }));
         item.querySelectorAll('[data-short-sheet-close]').forEach((button) => button.addEventListener('click', () => closeComments()));
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && !commentsSheet?.hidden) {
@@ -495,6 +548,10 @@ if (shortsFeed) {
             } finally {
                 submit.disabled = false;
             }
+        });
+
+        item.querySelector('[data-short-comment-input]')?.addEventListener('focus', (event) => {
+            window.setTimeout(() => event.currentTarget.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 180);
         });
 
         item.querySelectorAll('[data-comment-reaction]').forEach((button) => bindCommentReaction(item, button));
@@ -531,15 +588,25 @@ if (shortsFeed) {
     });
 
     shortsFeed.addEventListener('wheel', (event) => {
+        if (isInteractiveTarget(event.target)) return;
         if (wheelLocked || Math.abs(event.deltaY) < 24) return;
         event.preventDefault();
         wheelLocked = true;
         moveTo(activeIndex() + (event.deltaY > 0 ? 1 : -1));
         window.setTimeout(() => { wheelLocked = false; }, 550);
     }, { passive: false });
-    shortsFeed.addEventListener('touchstart', (event) => { touchStartY = event.changedTouches[0]?.clientY || 0; }, { passive: true });
+    shortsFeed.addEventListener('touchstart', (event) => {
+        if (isInteractiveTarget(event.target)) {
+            touchStartY = 0;
+            return;
+        }
+
+        touchStartY = event.changedTouches[0]?.clientY || 0;
+    }, { passive: true });
     shortsFeed.addEventListener('touchend', (event) => {
+        if (!touchStartY || isInteractiveTarget(event.target)) return;
         const distance = touchStartY - (event.changedTouches[0]?.clientY || 0);
+        touchStartY = 0;
         if (Math.abs(distance) > 55) moveTo(activeIndex() + (distance > 0 ? 1 : -1));
     }, { passive: true });
     shortsFeed.addEventListener('scroll', () => window.requestAnimationFrame(syncPlayback), { passive: true });
@@ -559,8 +626,8 @@ if (shortsFeed) {
         items.forEach((item) => observer.observe(item));
     }
 
-    // Desktop makes one unmuted attempt. Mobile starts muted so autoplay remains
-    // policy-compliant, then the first explicit interaction can unlock audio.
+    // Start with sound enabled on desktop and mobile. If a browser applies an
+    // autoplay restriction, startVideo() safely falls back to muted playback.
     if (items[0]) {
         startVideo(items[0]);
     }

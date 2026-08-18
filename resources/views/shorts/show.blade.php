@@ -8,7 +8,7 @@
 @endif
 
 @section('content')
-<div class="mx-auto h-[calc(100dvh-8.5rem)] max-w-5xl snap-y snap-mandatory overflow-y-auto overscroll-contain scrollbar-hide" data-shorts-player-feed data-authenticated="{{ auth()->check() ? 'true' : 'false' }}" data-login-url="{{ route('login') }}">
+<div class="shorts-player-feed mx-auto h-[calc(100dvh-8.5rem)] max-w-5xl snap-y snap-mandatory overflow-y-auto overscroll-contain scrollbar-hide" data-shorts-player-feed data-authenticated="{{ auth()->check() ? 'true' : 'false' }}" data-login-url="{{ route('login') }}">
     @foreach ($feed as $short)
         @php
             $isLiked = $likedIds->contains($short->id);
@@ -22,19 +22,18 @@
         <article
             data-short-item
             data-short-id="{{ $short->id }}"
-            class="flex min-h-[calc(100dvh-9rem)] snap-start items-center justify-center py-3 sm:py-5"
+            class="shorts-player-item flex min-h-[calc(100dvh-9rem)] snap-start items-center justify-center py-3 sm:py-5"
         >
             <div class="w-full">
                 <div class="mx-auto flex w-fit max-w-full items-center justify-center gap-4 lg:gap-6">
                     <div
                         data-short-stage
                         style="--short-height: min(66dvh, 680px)"
-                        class="relative aspect-[9/16] h-[var(--short-height)] w-[calc(var(--short-height)*9/16)] max-w-full overflow-hidden rounded-[2rem] border border-zinc-800 bg-black shadow-2xl shadow-black/40"
+                        class="shorts-stage relative aspect-[9/16] h-[var(--short-height)] w-[calc(var(--short-height)*9/16)] max-w-full overflow-hidden rounded-[2rem] border border-zinc-800 bg-black shadow-2xl shadow-black/40"
                     >
                         <video
                             data-short-video
                             class="h-full w-full object-contain"
-                            muted
                             playsinline
                             preload="metadata"
                             aria-label="{{ $short->title }} Short videosu"
@@ -42,8 +41,8 @@
                             <source src="{{ $short->video_url }}" type="video/mp4">
                         </video>
 
-                        <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent px-3 pb-3 pt-16">
-                            <div class="pointer-events-auto flex items-center gap-2">
+                        <div data-short-controls class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent px-3 pb-3 pt-16">
+                            <div data-short-interactive class="pointer-events-auto flex items-center gap-2">
                                 <button type="button" data-short-play aria-label="Videoyu duraklat" class="flex h-10 w-10 items-center justify-center rounded-xl bg-black/45 text-white backdrop-blur transition hover:bg-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
                                     <x-heroicon-o-pause class="h-5 w-5" data-short-pause-icon />
                                     <x-heroicon-o-play class="hidden h-5 w-5" data-short-play-icon />
@@ -52,11 +51,20 @@
                                     <x-heroicon-o-speaker-x-mark class="h-5 w-5" data-short-muted-icon />
                                     <x-heroicon-o-speaker-wave class="hidden h-5 w-5" data-short-unmuted-icon />
                                 </button>
-                                <input data-short-progress type="range" min="0" max="100" value="0" aria-label="Video ilerlemesi" class="h-1 min-w-0 flex-1 accent-red-500">
+                                <input data-short-progress data-short-interactive type="range" min="0" max="100" value="0" aria-label="Video ilerlemesi" class="h-2 min-w-0 flex-1 cursor-pointer accent-red-500">
                                 <button type="button" data-short-fullscreen aria-label="Tam ekran" class="flex h-10 w-10 items-center justify-center rounded-xl bg-black/45 text-white backdrop-blur transition hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
-                                    <x-heroicon-o-arrows-pointing-out class="h-5 w-5" />
+                                    <x-heroicon-o-arrows-pointing-out class="h-5 w-5" data-short-fullscreen-enter-icon />
+                                    <x-heroicon-o-arrows-pointing-in class="hidden h-5 w-5" data-short-fullscreen-exit-icon />
                                 </button>
                             </div>
+                        </div>
+
+                        <div data-short-interactive class="shorts-mobile-actions pointer-events-auto absolute bottom-16 right-2 z-10 flex flex-col items-center gap-2 sm:hidden">
+                            <button type="button" data-short-like data-url="{{ route('videos.like', $short) }}" data-active="{{ $isLiked ? 'true' : 'false' }}" aria-label="Videoyu beğen" class="short-action {{ $isLiked ? 'is-active' : '' }}"><x-heroicon-o-heart class="h-5 w-5" /><span data-short-likes-count>{{ number_format($short->likes_count) }}</span></button>
+                            <button type="button" data-short-dislike data-url="{{ route('videos.dislike', $short) }}" data-active="{{ $isDisliked ? 'true' : 'false' }}" aria-label="Videoyu beğenme" class="short-action {{ $isDisliked ? 'is-active' : '' }}"><x-heroicon-o-hand-thumb-down class="h-5 w-5" /><span data-short-dislikes-count>{{ number_format($short->dislikes_count) }}</span></button>
+                            <button type="button" data-short-comments-open aria-label="Yorumları aç" class="short-action"><x-heroicon-o-chat-bubble-left class="h-5 w-5" /><span data-short-comments-count>{{ number_format($short->comments_count) }}</span></button>
+                            <button type="button" data-short-share aria-label="Videoyu paylaş" class="short-action"><x-heroicon-o-share class="h-5 w-5" /><span class="sr-only">Paylaş</span></button>
+                            <button type="button" data-short-save data-url="{{ route('watch-later.toggle', $short) }}" data-active="{{ $isSaved ? 'true' : 'false' }}" aria-label="Videoyu kaydet" class="short-action {{ $isSaved ? 'is-active' : '' }}"><x-heroicon-o-bookmark class="h-5 w-5" /><span class="sr-only" data-short-save-text>{{ $isSaved ? 'Kayıtlı' : 'Kaydet' }}</span></button>
                         </div>
 
                         <div data-short-paused class="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/20">
@@ -80,7 +88,7 @@
                     </div>
                 </div>
 
-                <div class="mx-auto mt-4 w-full max-w-[calc(min(66dvh,680px)*9/16)] px-1">
+                <div class="shorts-info mx-auto mt-4 w-full max-w-[calc(min(66dvh,680px)*9/16)] px-1">
                     <div class="flex items-center justify-between gap-3">
                         <a href="{{ route('channels.show', $short->user) }}" class="flex min-w-0 items-center gap-3 rounded-2xl text-left transition hover:text-red-300">
                             @if ($short->user->avatar)
@@ -100,7 +108,7 @@
                         @endauth
                     </div>
 
-                    <h1 class="mt-3 text-lg font-bold leading-6 text-white">{{ $short->title }}</h1>
+                    <h1 class="mt-3 line-clamp-2 text-lg font-bold leading-6 text-white">{{ $short->title }}</h1>
                     @if (filled($short->description))
                         <details class="group mt-2 text-sm leading-6 text-zinc-400">
                             <summary class="cursor-pointer list-none font-medium text-zinc-300 marker:hidden"><span class="group-open:hidden">Açıklamayı göster</span><span class="hidden group-open:inline">Daha az göster</span></summary>
@@ -109,19 +117,11 @@
                     @endif
                 </div>
 
-                <div class="mx-auto mt-4 grid w-full max-w-[calc(min(66dvh,680px)*9/16)] grid-cols-3 gap-2 px-1 sm:hidden">
-                    <button type="button" data-short-like data-url="{{ route('videos.like', $short) }}" data-active="{{ $isLiked ? 'true' : 'false' }}" aria-label="Videoyu beğen" class="short-action {{ $isLiked ? 'is-active' : '' }}"><x-heroicon-o-heart class="h-5 w-5" /><span data-short-likes-count>{{ number_format($short->likes_count) }}</span></button>
-                    <button type="button" data-short-dislike data-url="{{ route('videos.dislike', $short) }}" data-active="{{ $isDisliked ? 'true' : 'false' }}" aria-label="Videoyu beğenme" class="short-action {{ $isDisliked ? 'is-active' : '' }}"><x-heroicon-o-hand-thumb-down class="h-5 w-5" /><span data-short-dislikes-count>{{ number_format($short->dislikes_count) }}</span></button>
-                    <button type="button" data-short-comments-open aria-label="Yorumları aç" class="short-action"><x-heroicon-o-chat-bubble-left class="h-5 w-5" /><span data-short-comments-count>{{ number_format($short->comments_count) }}</span></button>
-                    <button type="button" data-short-share aria-label="Videoyu paylaş" class="short-action"><x-heroicon-o-share class="h-5 w-5" /><span>Paylaş</span></button>
-                    <button type="button" data-short-save data-url="{{ route('watch-later.toggle', $short) }}" data-active="{{ $isSaved ? 'true' : 'false' }}" aria-label="Videoyu kaydet" class="short-action {{ $isSaved ? 'is-active' : '' }}"><x-heroicon-o-bookmark class="h-5 w-5" /><span data-short-save-text>{{ $isSaved ? 'Kayıtlı' : 'Kaydet' }}</span></button>
-                    @if (! $isOwner)<button type="button" data-short-report-open aria-label="Videoyu bildir" class="short-action"><x-heroicon-o-flag class="h-5 w-5" /><span>Bildir</span></button>@endif
-                </div>
             </div>
 
             <div data-short-comments-sheet hidden class="shorts-comments-layer fixed inset-0 z-[70] flex items-end p-0 lg:items-stretch lg:justify-end lg:p-6" role="dialog" aria-modal="true" aria-label="Shorts yorumları">
                 <button type="button" data-short-sheet-backdrop data-short-sheet-close class="absolute inset-0 cursor-default" aria-label="Yorumları kapat"></button>
-                <section data-short-comments-panel class="shorts-comments-panel relative flex h-[58dvh] max-h-[60dvh] w-full flex-col rounded-t-3xl border border-zinc-700 bg-zinc-950 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl lg:h-auto lg:max-h-none lg:w-[min(24rem,calc(100vw-6rem))] lg:rounded-3xl lg:p-5">
+                <section data-short-comments-panel class="shorts-comments-panel relative flex h-[min(72dvh,40rem)] max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full flex-col rounded-t-3xl border border-zinc-700 bg-zinc-950 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl lg:h-auto lg:max-h-none lg:w-[min(24rem,calc(100vw-6rem))] lg:rounded-3xl lg:p-5">
                     <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-zinc-600 lg:hidden" aria-hidden="true"></div>
                     <div class="flex shrink-0 items-center justify-between border-b border-zinc-800 pb-4"><h2 class="font-bold text-white">Yorumlar <span data-short-comments-count>{{ number_format($short->comments_count) }}</span></h2><button type="button" data-short-sheet-close aria-label="Yorumları kapat" class="rounded-xl p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"><x-heroicon-o-x-mark class="h-5 w-5" /></button></div>
                     <div data-short-comments-list class="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain py-4">

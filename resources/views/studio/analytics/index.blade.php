@@ -8,10 +8,17 @@
     $maxViews = max(1, $chart->max('views'));
     $maxBreakdown = fn ($items) => max(1, $items->max('views'));
 @endphp
-<div class="mx-auto max-w-7xl space-y-8" data-analytics-summary="{{ route('studio.dashboard.summary') }}">
+<div class="mx-auto max-w-7xl space-y-8" data-analytics-summary="{{ $eventTrackingAvailable ? route('studio.dashboard.summary') : '' }}">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p class="text-sm font-semibold uppercase tracking-[0.18em] text-red-400">Creator Studio</p><h1 class="mt-2 text-4xl font-bold text-white">Analytics</h1><p class="mt-3 text-gray-400">İzleyicilerinin kanalı nasıl keşfettiğini ve içeriklerini nasıl izlediğini takip et.</p></div><a href="{{ route('studio.videos.index') }}" class="w-fit rounded-xl border border-gray-700 px-4 py-2 text-sm font-medium text-gray-200 hover:border-red-500 hover:text-white">İçeriklere git</a></div>
 
     <div class="flex flex-wrap gap-2"><span class="self-center text-sm text-gray-500">Dönem:</span>@foreach ([7, 30, 365] as $period)<a href="{{ route('studio.analytics.index', ['period' => $period, 'group' => $group]) }}" class="rounded-xl px-3 py-2 text-sm font-semibold {{ $daysInPeriod === $period ? 'bg-red-600 text-white' : 'border border-gray-700 text-gray-300 hover:border-red-500 hover:text-white' }}">Son {{ $period }} gün</a>@endforeach<span class="ml-3 self-center text-sm text-gray-500">Grupla:</span>@foreach (['day' => 'Günlük', 'week' => 'Haftalık', 'month' => 'Aylık'] as $value => $label)<a href="{{ route('studio.analytics.index', ['period' => $daysInPeriod, 'group' => $value]) }}" class="rounded-xl px-3 py-2 text-sm font-semibold {{ $group === $value ? 'bg-gray-700 text-white' : 'border border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white' }}">{{ $label }}</a>@endforeach</div>
+
+    @if (! $analyticsAvailable || ! $eventTrackingAvailable || ! $impressionsAvailable)
+        <section class="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">
+            <p class="font-semibold">Analytics altyapısı henüz tamamen hazırlanmadı.</p>
+            <p class="mt-1 text-amber-100/80">Eksik veriler tahmin edilmez. Sunucuda bekleyen database migration'larını çalıştırdıktan sonra gerçek zamanlı, trafik kaynağı ve gösterim metrikleri otomatik görünür.</p>
+        </section>
+    @endif
 
     <a href="{{ route('studio.analytics.index', ['period' => 28, 'group' => $group]) }}" class="inline-flex rounded-xl px-3 py-2 text-sm font-semibold {{ $daysInPeriod === 28 ? 'bg-red-600 text-white' : 'border border-gray-700 text-gray-300 hover:border-red-500 hover:text-white' }}">Son 28 gün özeti</a>
 
@@ -51,6 +58,10 @@
 <script>
 const analyticsSummary = document.querySelector('[data-analytics-summary]');
 if (analyticsSummary) {
+    if (!analyticsSummary.dataset.analyticsSummary) {
+        return;
+    }
+
     const refreshRealtime = async () => {
         try {
             const response = await fetch(analyticsSummary.dataset.analyticsSummary, { headers: { Accept: 'application/json' } });

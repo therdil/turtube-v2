@@ -10,6 +10,7 @@ use App\Models\VideoAnalytics;
 use App\Models\VideoViewEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class AnalyticsController extends Controller
 {
@@ -25,11 +26,17 @@ class AnalyticsController extends Controller
         $group = $validated['group'] ?? ($daysInPeriod === 365 ? 'month' : 'day');
         $periodStart = now()->subDays($daysInPeriod - 1)->startOfDay();
 
-        $periodAnalytics = VideoAnalytics::query()
-            ->whereHas('video', fn ($query) => $query->where('user_id', $user->id))
-            ->with('video:id,duration')
-            ->whereDate('date', '>=', $periodStart)
-            ->get();
+        $analyticsAvailable = Schema::hasTable('video_analytics');
+        $eventTrackingAvailable = Schema::hasTable('video_view_events');
+        $impressionsAvailable = $analyticsAvailable && Schema::hasColumn('video_analytics', 'impressions');
+
+        $periodAnalytics = $analyticsAvailable
+            ? VideoAnalytics::query()
+                ->whereHas('video', fn ($query) => $query->where('user_id', $user->id))
+                ->with('video:id,duration')
+                ->whereDate('date', '>=', $periodStart)
+                ->get()
+            : collect();
         $daily = $periodAnalytics
             ->groupBy(fn (VideoAnalytics $analytics) => $analytics->date->toDateString())
             ->map(fn ($items) => [
@@ -43,7 +50,7 @@ class AnalyticsController extends Controller
         $periodViews = (int) $periodAnalytics->sum('views');
         $watchTime = (int) $periodAnalytics->sum('watch_time');
         $watchPotential = $periodAnalytics->sum(fn (VideoAnalytics $item) => $item->views * (int) ($item->video?->duration ?? 0));
-        $impressions = (int) $periodAnalytics->sum('impressions');
+        $impressions = $impressionsAvailable ? (int) $periodAnalytics->sum('impressions') : 0;
 
         $stats = [
             'videos' => Video::where('user_id', $user->id)->count(),
@@ -56,9 +63,11 @@ class AnalyticsController extends Controller
             'ctr' => $impressions > 0 ? round(min(100, ($periodViews / $impressions) * 100), 1) : null,
         ];
 
-        $events = VideoViewEvent::query()
-            ->whereHas('video', fn ($query) => $query->where('user_id', $user->id))
-            ->where('viewed_at', '>=', $periodStart);
+        $events = $eventTrackingAvailable
+            ? VideoViewEvent::query()
+                ->whereHas('video', fn ($query) => $query->where('user_id', $user->id))
+                ->where('viewed_at', '>=', $periodStart)
+            : null;
 
         $subscriberBase = Subscription::query()->where('channel_id', $user->id);
         $subscriberChange = (clone $subscriberBase)
@@ -67,20 +76,22 @@ class AnalyticsController extends Controller
         $previousSubscriberChange = (clone $subscriberBase)
             ->whereBetween('created_at', [$periodStart->copy()->subDays($daysInPeriod), $periodStart])
             ->count();
-        $realtimeViews = VideoViewEvent::query()
-            ->whereHas('video', fn ($query) => $query->where('user_id', $user->id))
-            ->where('viewed_at', '>=', now()->subMinutes(60))
-            ->count();
+        $realtimeViews = $eventTrackingAvailable
+            ? VideoViewEvent::query()
+                ->whereHas('video', fn ($query) => $query->where('user_id', $user->id))
+                ->where('viewed_at', '>=', now()->subMinutes(60))
+                ->count()
+            : 0;
 
-        $trafficSources = $this->breakdown((clone $events), 'source');
-        $devices = $this->breakdown((clone $events), 'device');
-        $countries = $this->breakdown((clone $events), 'country', 10);
+        $trafficSources = $events ? $this->breakdown(clone $events, 'source') : collect();
+        $devices = $events ? $this->breakdown(clone $events, 'device') : collect();
+        $countries = $events ? $this->breakdown(clone $events, 'country', 10) : collect();
 
         $topVideos = Video::where('user_id', $user->id)->orderByDesc('views')->take(10)->get();
 
         return view('studio.analytics.index', compact(
             'stats', 'topVideos', 'chart', 'daysInPeriod', 'group', 'trafficSources', 'devices', 'countries',
-            'subscriberChange', 'previousSubscriberChange', 'realtimeViews'
+            'subscriberChange', 'previousSubscriberChange', 'realtimeViews', 'analyticsAvailable', 'eventTrackingAvailable', 'impressionsAvailable'
         ));
     }
 

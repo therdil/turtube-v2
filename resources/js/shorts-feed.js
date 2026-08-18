@@ -71,8 +71,10 @@ if (shortsFeed) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const isAuthenticated = shortsFeed.dataset.authenticated === 'true';
     const loginUrl = shortsFeed.dataset.loginUrl || '/login';
+    const isMobileViewport = window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
     let wheelLocked = false;
     let touchStartY = 0;
+    let audioUnlocked = !isMobileViewport;
 
     const setText = (item, selector, value) => {
         item.querySelectorAll(selector).forEach((element) => {
@@ -159,13 +161,67 @@ if (shortsFeed) {
             ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
+    const pauseInactiveVideos = (activeItem) => {
+        items.forEach((item) => {
+            if (item !== activeItem) {
+                item.querySelector('[data-short-video]')?.pause();
+            }
+        });
+    };
+
+    const startVideo = (item, { allowMutedFallback = true } = {}) => {
+        const player = item.querySelector('[data-short-video]');
+
+        if (!player) {
+            return;
+        }
+
+        pauseInactiveVideos(item);
+        player.muted = !audioUnlocked;
+        player.volume = audioUnlocked ? 1 : player.volume;
+        setMutedState(item, player.muted || player.volume === 0);
+
+        player.play().catch(() => {
+            if (!allowMutedFallback || player.muted) {
+                setPlayingState(item, false);
+                return;
+            }
+
+            // Chrome may reject an unmuted autoplay attempt. Retry muted without
+            // treating the policy rejection as a player failure.
+            audioUnlocked = false;
+            player.muted = true;
+            setMutedState(item, true);
+            player.play().catch(() => setPlayingState(item, false));
+        });
+    };
+
+    const enableAudio = (item) => {
+        const player = item.querySelector('[data-short-video]');
+
+        if (!player) {
+            return;
+        }
+
+        audioUnlocked = true;
+        player.muted = false;
+        player.volume = 1;
+        setMutedState(item, false);
+        pauseInactiveVideos(item);
+        player.play().catch(() => {
+            // The user can retry with the same control if a browser or device
+            // temporarily interrupts playback.
+            setPlayingState(item, false);
+        });
+    };
+
     const syncPlayback = () => {
         const current = activeIndex();
         items.forEach((item, index) => {
             const player = item.querySelector('[data-short-video]');
             if (!player) return;
             if (index === current) {
-                player.play().catch(() => setPlayingState(item, false));
+                startVideo(item);
             } else {
                 player.pause();
             }
@@ -250,15 +306,38 @@ if (shortsFeed) {
         });
         video.addEventListener('ended', () => moveTo(index + 1));
         video.addEventListener('click', () => {
-            if (video.paused) video.play().catch(() => {}); else video.pause();
+            if (!audioUnlocked) {
+                enableAudio(item);
+            } else if (video.paused) {
+                startVideo(item);
+            } else {
+                video.pause();
+            }
         });
 
-        item.querySelector('[data-short-play]')?.addEventListener('click', () => {
-            if (video.paused) video.play().catch(() => {}); else video.pause();
+        item.querySelector('[data-short-play]')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!audioUnlocked) {
+                enableAudio(item);
+            } else if (video.paused) {
+                startVideo(item);
+            } else {
+                video.pause();
+            }
         });
-        item.querySelector('[data-short-mute]')?.addEventListener('click', () => {
-            video.muted = !video.muted;
-            if (!video.muted) video.volume = Math.max(video.volume, 0.65);
+        item.querySelector('[data-short-mute]')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (video.muted || video.volume === 0) {
+                enableAudio(item);
+                return;
+            }
+
+            audioUnlocked = false;
+            video.muted = true;
+            setMutedState(item, true);
         });
         progress?.addEventListener('input', () => {
             if (Number.isFinite(video.duration)) video.currentTime = (Number(progress.value) / 100) * video.duration;
@@ -471,10 +550,7 @@ if (shortsFeed) {
                 const player = entry.target.querySelector('[data-short-video]');
                 if (!player) return;
                 if (entry.isIntersecting && entry.intersectionRatio > 0.72) {
-                    items.forEach((other) => {
-                        if (other !== entry.target) other.querySelector('[data-short-video]')?.pause();
-                    });
-                    player.play().catch(() => {});
+                    startVideo(entry.target);
                 } else if (!entry.isIntersecting) {
                     player.pause();
                 }
@@ -483,6 +559,9 @@ if (shortsFeed) {
         items.forEach((item) => observer.observe(item));
     }
 
-    // The first Short starts muted. Browser autoplay policies can still block it safely.
-    items[0]?.querySelector('[data-short-video]')?.play().catch(() => {});
+    // Desktop makes one unmuted attempt. Mobile starts muted so autoplay remains
+    // policy-compliant, then the first explicit interaction can unlock audio.
+    if (items[0]) {
+        startVideo(items[0]);
+    }
 }

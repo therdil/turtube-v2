@@ -9,7 +9,7 @@
             </p>
 
             <h2 class="mt-3 text-4xl font-bold text-white">
-                {{ number_format($value) }}
+                {{ is_numeric($value) ? number_format($value) : $value }}
             </h2>
 
             @isset($subtitle)

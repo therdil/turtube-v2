@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class UploadSession extends Model
+class UploadBatch extends Model
 {
     public const STATUS_PENDING = 'pending';
     public const STATUS_COMPLETED = 'completed';
@@ -14,12 +14,8 @@ class UploadSession extends Model
     public const STATUS_FAILED = 'failed';
 
     protected $fillable = [
+        'uuid',
         'user_id',
-        'batch_id',
-        'object_key',
-        'content_type',
-        'extension',
-        'kind',
         'status',
         'expires_at',
         'completed_at',
@@ -38,13 +34,8 @@ class UploadSession extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function batch(): BelongsTo
+    public function sessions(): HasMany
     {
-        return $this->belongsTo(UploadBatch::class, 'batch_id');
-    }
-
-    public function scopeForOwnerAndKey(Builder $query, int $userId, string $key): Builder
-    {
-        return $query->where('user_id', $userId)->where('object_key', $key);
+        return $this->hasMany(UploadSession::class, 'batch_id');
     }
 }

@@ -87,6 +87,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Kullanıcının strict direct-upload grupları.
+     */
+    public function uploadBatches(): HasMany
+    {
+        return $this->hasMany(UploadBatch::class);
+    }
+
+    /**
      * Kullanıcının yaptığı video beğenileri
      */
     public function videoLikes(): HasMany

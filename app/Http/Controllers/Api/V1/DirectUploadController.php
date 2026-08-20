@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\VideoResource;
 use App\Jobs\ProcessUploadedVideo;
+use App\Models\UploadBatch;
 use App\Models\UploadSession;
 use App\Models\Video;
 use App\Services\ContentCache;
 use App\Services\R2UploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -24,6 +27,8 @@ class DirectUploadController extends Controller
         $data = $request->validate([
             'extension' => ['required', 'string', Rule::in(['mp4', 'jpg', 'jpeg', 'png', 'webp'])],
             'content_type' => ['required', 'string', Rule::in(['video/mp4', 'image/jpeg', 'image/png', 'image/webp'])],
+            'kind' => ['nullable', 'string', Rule::in(['video', 'thumbnail'])],
+            'batch_id' => ['nullable', 'uuid'],
         ]);
 
         if (! $this->matchesContentType($data['extension'], $data['content_type'])) {
@@ -32,18 +37,68 @@ class DirectUploadController extends Controller
             ]);
         }
 
+        $strictMode = filled($data['kind'] ?? null) || filled($data['batch_id'] ?? null);
+        $batch = null;
+
+        if ($strictMode) {
+            if (! filled($data['kind'] ?? null)) {
+                throw ValidationException::withMessages(['kind' => 'Batch yüklemesi için medya türü gereklidir.']);
+            }
+
+            $this->ensureKindMatchesContentType($data['kind'], $data['content_type']);
+
+            if ($data['kind'] === 'video') {
+                if (filled($data['batch_id'] ?? null)) {
+                    throw ValidationException::withMessages(['batch_id' => 'Yeni video yüklemesi yeni bir batch oluşturmalıdır.']);
+                }
+
+                $batch = UploadBatch::query()->create([
+                    'uuid' => (string) Str::uuid(),
+                    'user_id' => $request->user('sanctum')->id,
+                    'status' => UploadBatch::STATUS_PENDING,
+                    'expires_at' => now()->addSeconds(R2UploadService::UPLOAD_EXPIRATION_SECONDS),
+                ]);
+            } else {
+                if (! filled($data['batch_id'] ?? null)) {
+                    throw ValidationException::withMessages(['batch_id' => 'Thumbnail yüklemesi için batch_id gereklidir.']);
+                }
+
+                $batch = $this->batchForOwner($request->user('sanctum')->id, $data['batch_id']);
+                $this->ensureBatchCanComplete($batch);
+
+                if ($batch->sessions()->where('kind', 'thumbnail')->exists()) {
+                    throw ValidationException::withMessages(['batch_id' => 'Bu batch için zaten bir thumbnail yüklemesi başlatıldı.']);
+                }
+            }
+        }
+
         $upload = $uploads->createUpload($data['extension'], $data['content_type']);
-        $session = UploadSession::query()->create([
-            'user_id' => $request->user('sanctum')->id,
-            'object_key' => $upload['key'],
-            'content_type' => $data['content_type'],
-            'extension' => $data['extension'],
-            'status' => UploadSession::STATUS_PENDING,
-            'expires_at' => now()->addSeconds($upload['expires_in']),
-        ]);
+        try {
+            $session = UploadSession::query()->create([
+                'user_id' => $request->user('sanctum')->id,
+                'batch_id' => $batch?->id,
+                'object_key' => $upload['key'],
+                'content_type' => $data['content_type'],
+                'extension' => $data['extension'],
+                'kind' => $strictMode ? $data['kind'] : null,
+                'status' => UploadSession::STATUS_PENDING,
+                'expires_at' => now()->addSeconds($upload['expires_in']),
+            ]);
+        } catch (QueryException $exception) {
+            if ($batch && $strictMode) {
+                throw ValidationException::withMessages([
+                    'batch_id' => 'Bu batch için bu medya türünde bir yükleme zaten başlatıldı.',
+                ]);
+            }
+
+            throw $exception;
+        }
 
         // Optional for newer clients; the established Android fields remain unchanged.
         $upload['session_id'] = $session->id;
+        if ($batch) {
+            $upload['batch_id'] = $batch->uuid;
+        }
 
         return response()->json(['upload' => $upload], 201);
     }
@@ -64,12 +119,17 @@ class DirectUploadController extends Controller
             'tags.*' => ['string', 'max:50', 'distinct'],
             'is_short' => ['nullable', 'boolean'],
             'is_premium' => ['nullable', 'boolean'],
+            'batch_id' => ['nullable', 'uuid'],
         ]);
 
         $user = $request->user('sanctum');
-        $sessions = $this->sessionsFor($user->id, $data);
+        $batch = filled($data['batch_id'] ?? null) ? $this->batchForOwner($user->id, $data['batch_id']) : null;
+        if ($batch && $batch->status !== UploadBatch::STATUS_COMPLETED) {
+            $this->ensureBatchCanComplete($batch);
+        }
+        $sessions = $this->sessionsFor($user->id, $data, false, $batch);
 
-        if ($sessions['video']->status === UploadSession::STATUS_COMPLETED) {
+        if ($batch?->status === UploadBatch::STATUS_COMPLETED || $sessions['video']->status === UploadSession::STATUS_COMPLETED) {
             return $this->completedResponse($user->id, $data);
         }
 
@@ -86,13 +146,17 @@ class DirectUploadController extends Controller
             throw ValidationException::withMessages($missing);
         }
 
-        $result = DB::transaction(function () use ($data, $user): array {
-            $sessions = $this->sessionsFor($user->id, $data, true);
+        $result = DB::transaction(function () use ($data, $user, $batch): array {
+            $lockedBatch = $batch ? $this->batchForOwner($user->id, $batch->uuid, true) : null;
+            $sessions = $this->sessionsFor($user->id, $data, true, $lockedBatch);
 
-            if ($sessions['video']->status === UploadSession::STATUS_COMPLETED) {
+            if ($lockedBatch?->status === UploadBatch::STATUS_COMPLETED || $sessions['video']->status === UploadSession::STATUS_COMPLETED) {
                 return ['video' => $this->completedVideo($user->id, $data), 'created' => false];
             }
 
+            if ($lockedBatch) {
+                $this->ensureBatchCanComplete($lockedBatch);
+            }
             $this->ensureSessionsCanComplete($sessions);
 
             $video = Video::query()->create([
@@ -121,6 +185,13 @@ class DirectUploadController extends Controller
             foreach ($sessions as $session) {
                 $session->update([
                     'status' => UploadSession::STATUS_COMPLETED,
+                    'completed_at' => now(),
+                ]);
+            }
+
+            if ($lockedBatch) {
+                $lockedBatch->update([
+                    'status' => UploadBatch::STATUS_COMPLETED,
                     'completed_at' => now(),
                 ]);
             }
@@ -154,8 +225,20 @@ class DirectUploadController extends Controller
         };
     }
 
+    private function ensureKindMatchesContentType(string $kind, string $contentType): void
+    {
+        $matches = ($kind === 'video' && $contentType === 'video/mp4')
+            || ($kind === 'thumbnail' && str_starts_with($contentType, 'image/'));
+
+        if (! $matches) {
+            throw ValidationException::withMessages([
+                'kind' => 'Medya türü ile içerik türü birbiriyle eşleşmelidir.',
+            ]);
+        }
+    }
+
     /** @return array{video: UploadSession, thumbnail?: UploadSession} */
-    private function sessionsFor(int $userId, array $data, bool $lock = false): array
+    private function sessionsFor(int $userId, array $data, bool $lock = false, ?UploadBatch $batch = null): array
     {
         $sessions = [];
 
@@ -165,6 +248,9 @@ class DirectUploadController extends Controller
             }
 
             $query = UploadSession::query()->forOwnerAndKey($userId, $data[$key]);
+            if ($batch) {
+                $query->where('batch_id', $batch->id)->where('kind', $type);
+            }
             if ($lock) {
                 $query->lockForUpdate();
             }
@@ -180,6 +266,33 @@ class DirectUploadController extends Controller
         }
 
         return $sessions;
+    }
+
+    private function batchForOwner(int $userId, string $uuid, bool $lock = false): UploadBatch
+    {
+        $query = UploadBatch::query()->where('user_id', $userId)->where('uuid', $uuid);
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        $batch = $query->first();
+        if (! $batch) {
+            throw ValidationException::withMessages(['batch_id' => 'Bu yükleme batch\'ine erişim izniniz yok veya batch bulunamadı.']);
+        }
+
+        return $batch;
+    }
+
+    private function ensureBatchCanComplete(UploadBatch $batch): void
+    {
+        if ($batch->status !== UploadBatch::STATUS_PENDING) {
+            throw ValidationException::withMessages(['batch_id' => 'Bu yükleme batch\'i artık tamamlanamaz.']);
+        }
+
+        if ($batch->expires_at->addSeconds(120)->isPast()) {
+            $batch->update(['status' => UploadBatch::STATUS_EXPIRED]);
+            throw ValidationException::withMessages(['batch_id' => 'Bu yükleme batch\'inin süresi doldu.']);
+        }
     }
 
     /** @param array{video: UploadSession, thumbnail?: UploadSession} $sessions */

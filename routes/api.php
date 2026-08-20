@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V1\StudioAnalyticsController;
 use App\Http\Controllers\Api\V1\StudioVideoController;
 use App\Http\Controllers\Api\V1\VideoController;
 use App\Http\Controllers\Api\V1\UploadController;
+use App\Http\Controllers\Api\V1\DirectUploadController;
 use App\Http\Controllers\VideoReportController as VideoReportSubmissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -61,6 +62,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     Route::middleware(['auth:sanctum', 'throttle:video-upload'])->group(function (): void {
         Route::post('/videos', [UploadController::class, 'storeVideo'])->name('videos.store');
         Route::post('/shorts', [UploadController::class, 'storeShort'])->name('shorts.store');
+        Route::post('/uploads', [DirectUploadController::class, 'initiate'])->name('uploads.initiate');
+        Route::post('/uploads/complete', [DirectUploadController::class, 'complete'])->name('uploads.complete');
     });
 
     Route::middleware('auth:sanctum')->group(function (): void {

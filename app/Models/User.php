@@ -79,6 +79,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Kullanıcının doğrudan medya yükleme oturumları.
+     */
+    public function uploadSessions(): HasMany
+    {
+        return $this->hasMany(UploadSession::class);
+    }
+
+    /**
      * Kullanıcının yaptığı video beğenileri
      */
     public function videoLikes(): HasMany

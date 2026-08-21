@@ -63,6 +63,12 @@ Route::get('/live/{stream}', [LiveStreamController::class, 'show'])
 Route::get('/premium', [PremiumController::class, 'index'])
     ->name('premium.index');
 
+Route::view('/privacy', 'privacy')
+    ->name('privacy');
+
+Route::view('/account/delete', 'account-delete')
+    ->name('account.delete');
+
 Route::get('/sitemap.xml', SitemapController::class)
     ->name('sitemap');
 

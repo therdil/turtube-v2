@@ -204,6 +204,16 @@
 
                         </a>
 
+                        <a
+                            href="{{ route('profile.edit') }}"
+                            class="flex items-center gap-3 px-5 py-3 transition hover:bg-gray-800">
+
+                            <x-heroicon-o-user-circle class="h-5 w-5"/>
+
+                            Profil Ayarları
+
+                        </a>
+
                         <div class="border-t border-gray-800"></div>
 
                         <form

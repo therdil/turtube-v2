@@ -83,6 +83,7 @@ Route::post('/videos/{video}/age-confirmation', [VideoController::class, 'confir
     ->name('videos.age-confirmation');
 
 Route::get('/playlists/{playlist}', [PlaylistController::class, 'show'])
+    ->whereNumber('playlist')
     ->name('playlists.show');
 
 Route::get('/@{user:name}', [ChannelController::class, 'show'])

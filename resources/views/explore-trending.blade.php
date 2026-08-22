@@ -1,6 +1,9 @@
 @extends('layouts.turtube')
 
-@section('title', 'Trendler')
+@section('title', 'Trend Videolar - TurTube')
+@section('meta_description', 'TurTube topluluğunun en çok izlediği trend videoları keşfet.')
+@section('og_title', 'Trend Videolar')
+@section('og_description', 'TurTube topluluğunun en çok izlediği trend videoları keşfet.')
 
 @section('content')
 

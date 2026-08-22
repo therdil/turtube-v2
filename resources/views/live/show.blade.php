@@ -1,6 +1,18 @@
 @extends('layouts.turtube')
 
-@section('title', $stream->title)
+@php
+    $liveMetaDescription = trim(strip_tags((string) $stream->description));
+    $liveMetaDescription = $liveMetaDescription !== ''
+        ? \Illuminate\Support\Str::limit($liveMetaDescription, 155)
+        : ($stream->status === 'live' ? 'TurTube üzerinde canlı yayınlanan içerik.' : 'TurTube üzerinde planlanan canlı yayın.');
+@endphp
+@section('title', $stream->title.' - Canlı Yayın - TurTube')
+@section('meta_description', $liveMetaDescription)
+@section('og_title', $stream->title)
+@section('og_description', $liveMetaDescription)
+@if ($stream->thumbnail)
+    @section('og_image', \App\Services\MediaUrl::for($stream->thumbnail))
+@endif
 
 @section('content')
 <div class="mx-auto max-w-6xl">

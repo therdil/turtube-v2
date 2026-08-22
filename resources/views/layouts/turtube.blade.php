@@ -13,33 +13,65 @@
         name="csrf-token"
         content="{{ csrf_token() }}">
 
-    <title>
+    @php
+        $defaultRobots = request()->routeIs(
+            'videos.create',
+            'videos.mine',
+            'videos.edit',
+            'favorites.*',
+            'liked-videos.*',
+            'watch-later.*',
+            'subscriptions.*',
+            'notifications.*',
+            'history.*',
+            'playlists.index',
+            'playlists.create',
+            'profile.*',
+            'live.create',
+            'studio.*',
+            'admin.*',
+        ) ? 'noindex,follow' : 'index,follow';
+        $defaultTitle = 'TurTube';
+        $defaultDescription = 'TurTube ile videoları keşfet, paylaş ve sevdiğin kanalları takip et.';
+        $metaTitle = trim($__env->yieldContent('title', $defaultTitle));
+        $metaDescription = trim($__env->yieldContent('meta_description', $defaultDescription));
+        $metaKeywords = trim($__env->yieldContent('meta_keywords'));
+        $metaRobots = trim($__env->yieldContent('meta_robots', $defaultRobots));
+        $metaOgType = trim($__env->yieldContent('og_type', 'website'));
+        $metaOgTitle = trim($__env->yieldContent('og_title', $metaTitle));
+        $metaOgDescription = trim($__env->yieldContent('og_description', $metaDescription));
+        $metaImage = trim($__env->yieldContent('og_image'));
+        $metaTwitterTitle = trim($__env->yieldContent('twitter_title', $metaOgTitle));
+        $metaTwitterDescription = trim($__env->yieldContent('twitter_description', $metaOgDescription));
+        $metaTwitterImage = trim($__env->yieldContent('twitter_image', $metaImage));
+        $isIndexablePage = ! \Illuminate\Support\Str::contains(\Illuminate\Support\Str::lower($metaRobots), 'noindex');
+    @endphp
 
-        @yield('title', 'TurTube')
-
-    </title>
+    <title>{{ $metaTitle }}</title>
 
     <x-brand.favicon />
 
-    <meta name="description" content="@yield('meta_description', 'TurTube ile videoları keşfet, paylaş ve sevdiğin kanalları takip et.')">
-    @hasSection('meta_keywords')
-        <meta name="keywords" content="@yield('meta_keywords')">
+    <meta name="description" content="{{ $metaDescription }}">
+    @if ($metaKeywords !== '')
+        <meta name="keywords" content="{{ $metaKeywords }}">
     @endif
-    <meta name="robots" content="@yield('meta_robots', 'index,follow')">
+    <meta name="robots" content="{{ $metaRobots }}">
     <link rel="canonical" href="{{ url()->current() }}">
-    <meta property="og:site_name" content="TurTube">
-    <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:title" content="@yield('title', 'TurTube')">
-    <meta property="og:description" content="@yield('meta_description', 'TurTube ile videoları keşfet, paylaş ve sevdiğin kanalları takip et.')">
-    <meta property="og:url" content="{{ url()->current() }}">
-    @hasSection('og_image')
-        <meta property="og:image" content="@yield('og_image')">
-    @endif
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title', 'TurTube')">
-    <meta name="twitter:description" content="@yield('meta_description', 'TurTube')">
-    @hasSection('og_image')
-        <meta name="twitter:image" content="@yield('og_image')">
+    @if ($isIndexablePage)
+        <meta property="og:site_name" content="TurTube">
+        <meta property="og:type" content="{{ $metaOgType }}">
+        <meta property="og:title" content="{{ $metaOgTitle }}">
+        <meta property="og:description" content="{{ $metaOgDescription }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        @if ($metaImage !== '')
+            <meta property="og:image" content="{{ $metaImage }}">
+        @endif
+        <meta name="twitter:card" content="{{ $metaTwitterImage !== '' ? 'summary_large_image' : 'summary' }}">
+        <meta name="twitter:title" content="{{ $metaTwitterTitle }}">
+        <meta name="twitter:description" content="{{ $metaTwitterDescription }}">
+        @if ($metaTwitterImage !== '')
+            <meta name="twitter:image" content="{{ $metaTwitterImage }}">
+        @endif
     @endif
 
     @stack('head')

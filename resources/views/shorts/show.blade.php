@@ -1,8 +1,19 @@
 @extends('layouts.turtube')
 
-@section('title', $video->title.' · Shorts')
-@section('meta_description', \Illuminate\Support\Str::limit($video->description ?: $video->title, 155))
+@php
+    $shortMetaDescription = trim(strip_tags((string) $video->description));
+    $shortMetaDescription = $shortMetaDescription !== ''
+        ? \Illuminate\Support\Str::limit($shortMetaDescription, 155)
+        : 'TurTube üzerinde '.$video->display_channel_name.' tarafından yayınlanan kısa videoyu izle.';
+@endphp
+@section('title', $video->title.' - TurTube Shorts')
+@section('meta_description', $shortMetaDescription)
 @section('og_type', 'video.other')
+@section('og_title', $video->title)
+@section('og_description', $shortMetaDescription)
+@if ($video->status !== 'public')
+    @section('meta_robots', 'noindex,follow')
+@endif
 @if ($video->thumbnail)
     @section('og_image', $video->thumbnail_url)
 @endif
@@ -183,3 +194,58 @@
     @endforeach
 </div>
 @endsection
+
+@php
+    $shouldRenderShortSchema = $video->status === 'public'
+        && $video->processing_status === 'ready'
+        && ! $video->is_premium
+        && filled($video->video_path)
+        && filled($video->video_url);
+    $shortSchemaDescription = trim(strip_tags((string) $video->description));
+    $shortDurationSeconds = max(0, (int) $video->duration);
+    $shortSchemaDuration = null;
+
+    if ($shortDurationSeconds > 0) {
+        $hours = intdiv($shortDurationSeconds, 3600);
+        $minutes = intdiv($shortDurationSeconds % 3600, 60);
+        $seconds = $shortDurationSeconds % 60;
+        $shortSchemaDuration = 'PT'
+            . ($hours > 0 ? $hours.'H' : '')
+            . ($minutes > 0 ? $minutes.'M' : '')
+            . $seconds.'S';
+    }
+
+    $shortSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'VideoObject',
+        'name' => $video->title,
+        'uploadDate' => $video->created_at->toAtomString(),
+        'contentUrl' => $video->video_url,
+        'url' => route('shorts.show', $video),
+        'publisher' => ['@type' => 'Organization', 'name' => 'TurTube'],
+        'author' => ['@type' => 'Person', 'name' => $video->display_channel_name],
+        'interactionStatistic' => [
+            '@type' => 'InteractionCounter',
+            'interactionType' => ['@type' => 'WatchAction'],
+            'userInteractionCount' => (int) $video->views,
+        ],
+    ];
+
+    if ($shortSchemaDescription !== '') {
+        $shortSchema['description'] = \Illuminate\Support\Str::limit($shortSchemaDescription, 500);
+    }
+
+    if ($video->thumbnail && filled($video->thumbnail_url)) {
+        $shortSchema['thumbnailUrl'] = [$video->thumbnail_url];
+    }
+
+    if ($shortSchemaDuration) {
+        $shortSchema['duration'] = $shortSchemaDuration;
+    }
+@endphp
+
+@if ($shouldRenderShortSchema)
+@push('head')
+<script type="application/ld+json">{!! json_encode($shortSchema, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endpush
+@endif

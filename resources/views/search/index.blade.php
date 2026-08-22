@@ -1,6 +1,7 @@
 @extends('layouts.turtube')
 
 @section('title', $query !== '' ? $query.' · Arama' : 'Arama')
+@section('meta_robots', 'noindex,follow')
 
 @section('content')
 <div class="mx-auto max-w-[1800px] space-y-7 px-4 py-6 sm:px-6">

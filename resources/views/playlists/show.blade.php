@@ -1,5 +1,9 @@
 @extends('layouts.turtube')
 
+@if (! $playlist->is_public)
+    @section('meta_robots', 'noindex,follow')
+@endif
+
 @section('content')
 
 <div class="mx-auto max-w-6xl">

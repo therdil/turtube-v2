@@ -1,6 +1,9 @@
 @extends('layouts.turtube')
 
-@section('title', 'Canlı Yayınlar')
+@section('title', 'Canlı Yayınlar - TurTube')
+@section('meta_description', 'TurTube üzerindeki canlı ve planlanmış yayınları keşfet.')
+@section('og_title', 'Canlı Yayınlar')
+@section('og_description', 'TurTube üzerindeki canlı ve planlanmış yayınları keşfet.')
 
 @section('content')
 <div class="mx-auto max-w-6xl">

@@ -1,6 +1,9 @@
 @extends('layouts.turtube')
 
-@section('title', 'TurTube')
+@section('title', 'TurTube - Video Platformu')
+@section('meta_description', 'TurTube ile videoları keşfet, paylaş ve sevdiğin kanalları takip et.')
+@section('og_title', 'TurTube')
+@section('og_description', 'TurTube ile videoları keşfet, paylaş ve sevdiğin kanalları takip et.')
 
 @section('content')
 

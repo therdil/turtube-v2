@@ -1,15 +1,32 @@
 @extends('layouts.turtube')
 
-@section('title', ($channel->channel_name ?: $channel->name).' kanalı')
-@section('meta_description', \Illuminate\Support\Str::limit($channel->channel_description ?: ($channel->channel_name ?: $channel->name).' kanalını TurTube üzerinde keşfet.', 155))
+@php
+    $channelTitle = $channel->channel_name ?: $channel->name;
+    $channelMetaDescription = trim(strip_tags((string) $channel->channel_description));
+    $channelMetaDescription = $channelMetaDescription !== ''
+        ? \Illuminate\Support\Str::limit($channelMetaDescription, 155)
+        : $channelTitle.' kanalını TurTube üzerinde keşfet.';
+    $channelSocialImage = $channel->banner ?: $channel->avatar;
+@endphp
+@section('title', $channelTitle.' - TurTube')
+@section('meta_description', $channelMetaDescription)
+@section('og_title', $channelTitle)
+@section('og_description', $channelMetaDescription)
+
+@if ($channel->channel_visibility === 'private')
+    @section('meta_robots', 'noindex,follow')
+@endif
 
 @if (!empty($channel->seo_keywords))
 @section('meta_keywords', implode(', ', $channel->seo_keywords))
 @endif
 
+@if ($channelSocialImage)
+    @section('og_image', \App\Services\MediaUrl::for($channelSocialImage))
+@endif
+
 @section('content')
 @php
-    $channelTitle = $channel->channel_name ?: $channel->name;
     $socialLabels = ['website' => 'Web sitesi', 'instagram' => 'Instagram', 'x' => 'X / Twitter', 'facebook' => 'Facebook', 'youtube' => 'YouTube'];
 @endphp
 <div class="mx-auto max-w-[1800px] px-6 py-6">

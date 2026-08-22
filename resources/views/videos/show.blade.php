@@ -1,8 +1,19 @@
 @extends('layouts.turtube')
 
-@section('title', $video->title)
-@section('meta_description', \Illuminate\Support\Str::limit($video->description ?: $video->title, 155))
+@php
+    $videoMetaDescription = trim(strip_tags((string) $video->description));
+    $videoMetaDescription = $videoMetaDescription !== ''
+        ? \Illuminate\Support\Str::limit($videoMetaDescription, 155)
+        : 'TurTube üzerinde '.$video->display_channel_name.' tarafından yayınlanan bu videoyu izle.';
+@endphp
+@section('title', $video->title.' - TurTube')
+@section('meta_description', $videoMetaDescription)
 @section('og_type', 'video.other')
+@section('og_title', $video->title)
+@section('og_description', $videoMetaDescription)
+@if ($video->status !== 'public')
+    @section('meta_robots', 'noindex,follow')
+@endif
 @if ($video->thumbnail)
     @section('og_image', $video->thumbnail_url)
 @endif
@@ -208,16 +219,32 @@
 
 @endsection
 
-@push('head')
 @php
+    $shouldRenderVideoSchema = $video->status === 'public'
+        && $video->processing_status === 'ready'
+        && ! $video->is_premium
+        && filled($video->video_path)
+        && filled($video->video_url);
+    $schemaDescription = trim(strip_tags((string) $video->description));
+    $durationSeconds = max(0, (int) $video->duration);
+    $schemaDuration = null;
+
+    if ($durationSeconds > 0) {
+        $hours = intdiv($durationSeconds, 3600);
+        $minutes = intdiv($durationSeconds % 3600, 60);
+        $seconds = $durationSeconds % 60;
+        $schemaDuration = 'PT'
+            . ($hours > 0 ? $hours.'H' : '')
+            . ($minutes > 0 ? $minutes.'M' : '')
+            . $seconds.'S';
+    }
+
     $videoSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'VideoObject',
         'name' => $video->title,
-        'description' => \Illuminate\Support\Str::limit($video->description ?: $video->title, 500),
         'uploadDate' => $video->created_at->toAtomString(),
         'contentUrl' => $video->video_url,
-        'embedUrl' => route('videos.show', $video),
         'url' => route('videos.show', $video),
         'publisher' => ['@type' => 'Organization', 'name' => 'TurTube'],
         'author' => ['@type' => 'Person', 'name' => $video->display_channel_name],
@@ -228,12 +255,23 @@
         ],
     ];
 
-    if ($video->thumbnail) {
+    if ($schemaDescription !== '') {
+        $videoSchema['description'] = \Illuminate\Support\Str::limit($schemaDescription, 500);
+    }
+
+    if ($video->thumbnail && filled($video->thumbnail_url)) {
         $videoSchema['thumbnailUrl'] = [$video->thumbnail_url];
     }
+
+    if ($schemaDuration) {
+        $videoSchema['duration'] = $schemaDuration;
+    }
 @endphp
+@if ($shouldRenderVideoSchema)
+@push('head')
 <script type="application/ld+json">{!! json_encode($videoSchema, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @endpush
+@endif
 
 @push('scripts')
 <script>

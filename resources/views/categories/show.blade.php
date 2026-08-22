@@ -1,6 +1,9 @@
 @extends('layouts.turtube')
 
-@section('title', $category->name)
+@section('title', $category->name.' Videoları - TurTube')
+@section('meta_description', 'TurTube üzerinde '.$category->name.' kategorisindeki videoları keşfet.')
+@section('og_title', $category->name.' videoları')
+@section('og_description', 'TurTube üzerinde '.$category->name.' kategorisindeki videoları keşfet.')
 
 @section('content')
 

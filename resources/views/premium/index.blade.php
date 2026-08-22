@@ -1,6 +1,9 @@
 @extends('layouts.turtube')
 
-@section('title', 'TurTube Premium')
+@section('title', 'TurTube Premium - Özel İçerikler')
+@section('meta_description', 'TurTube Premium ile özel içeriklere ve reklamsız izleme deneyimine eriş.')
+@section('og_title', 'TurTube Premium')
+@section('og_description', 'TurTube Premium ile özel içeriklere ve reklamsız izleme deneyimine eriş.')
 
 @section('content')
 <div class="mx-auto max-w-6xl">

@@ -1,6 +1,9 @@
 @extends('layouts.turtube')
 
-@section('title', 'TurTube Shorts')
+@section('title', 'TurTube Shorts - Kısa Videolar')
+@section('meta_description', 'TurTube Shorts ile kısa, dikey ve hızlı tüketilen videoları keşfet.')
+@section('og_title', 'TurTube Shorts')
+@section('og_description', 'TurTube Shorts ile kısa, dikey ve hızlı tüketilen videoları keşfet.')
 
 @section('content')
 <div class="mx-auto max-w-6xl">
